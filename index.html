@@ -251,6 +251,21 @@
         .size-control { background: #ecf3fa; padding: 6px 14px; border-radius: 50px; display: flex; align-items: center; gap: 12px; }
         .size-value { font-weight: 800; background: white; padding: 4px 12px; border-radius: 40px; min-width: 65px; text-align: center; }
         .size-btn { background: white; border: 1px solid #c0d6ea; border-radius: 30px; padding: 3px 12px; font-weight: bold; cursor: pointer; }
+        .size-select {
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid #c0d6ea;
+            background: white;
+            font-weight: 600;
+            color: #1a638f;
+            cursor: pointer;
+            outline: none;
+            transition: 0.2s;
+        }
+        .size-select:hover {
+            border-color: #2a90c5;
+            background: #f0f8ff;
+        }
         .total-cost { background: linear-gradient(125deg, #0a3557, #126896); color: white; border-radius: 50px; padding: 16px 20px; text-align: center; margin-top: 20px; }
         .total-cost span { font-size: 2rem; font-weight: 800; }
 
@@ -339,7 +354,7 @@
     <div class="pool-types">
         <div class="pool-card" data-shape="rect">
             <div class="card-image"><img class="pool-img" src="3d1prym.png" alt="Прямоугольный"><div class="card-overlay"><span class="shape-icon"></span></div></div>
-            <div class="card-content"><h3>Прямоугольный бассейн</h3><div class="card-desc">Максимум пространства, строгие линии.</div><span class="card-price-tag">от 320 000 ₽</span><div class="arrow-hint">→</div></div>
+            <div class="card-content"><h3>Прямоугольный бассейн</h3><div class="card-desc">Максимум пространства, строгие линии.</div><span class="card-price-tag">от 55 000 ₽</span><div class="arrow-hint">→</div></div>
         </div>
         <div class="pool-card" data-shape="circle">
             <div class="card-image"><img class="pool-img" src="krug.png" alt="Круглый"><div class="card-overlay"><span class="shape-icon"></span></div></div>
@@ -364,7 +379,39 @@
         </div>
         <div class="calculator-right">
             <h2>🏊 Прямоугольный бассейн</h2>
-            <div class="section"><h3>📏 Размер бассейна</h3><div class="size-row"><div class="size-control">Длина: <span id="rectLengthVal" class="size-value">3 м</span><div class="size-buttons"><button class="size-btn" data-dim="length" data-delta="-1">-</button><button class="size-btn" data-dim="length" data-delta="1">+</button></div></div><div class="size-control">Ширина: <span id="rectWidthVal" class="size-value">2 м</span><div class="size-buttons"><button class="size-btn" data-dim="width" data-delta="-1">-</button><button class="size-btn" data-dim="width" data-delta="1">+</button></div></div><div>Высота 1.5 м</div></div><div id="rectVolumeInfo" style="font-size:0.75rem;"></div></div>
+            <div class="section"><h3>📏 Размер бассейна</h3>
+                <div class="size-row">
+                    <div class="size-control">
+                        Длина: 
+                        <select id="rectLengthSelect" class="size-select">
+                            <option value="1.5">1.5 м</option>
+                            <option value="2">2 м</option>
+                            <option value="2.5">2.5 м</option>
+                            <option value="3">3 м</option>
+                            <option value="3.5">3.5 м</option>
+                            <option value="4">4 м</option>
+                            <option value="5">5 м</option>
+                            <option value="5.5">5.5 м</option>
+                            <option value="6">6 м</option>
+                            <option value="7">7 м</option>
+                            <option value="8">8 м</option>
+                        </select>
+                    </div>
+                    <div class="size-control">
+                        Ширина: 
+                        <select id="rectWidthSelect" class="size-select">
+                            <option value="1.5">1.5 м</option>
+                            <option value="2">2 м</option>
+                            <option value="2.5">2.5 м</option>
+                            <option value="3">3 м</option>
+                            <option value="3.5">3.5 м</option>
+                            <option value="4">4 м</option>
+                        </select>
+                    </div>
+                    <div>Высота 1.5 м</div>
+                </div>
+                <div id="rectVolumeInfo" style="font-size:0.75rem;"></div>
+            </div>
             <div class="section"><h3>🪜 Лестница</h3><div class="option-group" id="rectStairsGroup"></div></div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="rectEmbedGroup"></div></div>
             <div class="section"><h3>〰️ Радиусные углы</h3><div class="option-group" id="rectRadiusGroup"></div></div>
@@ -585,87 +632,87 @@
     }
     
     function renderFullSpecTable(shapeType) {
-    const state = selectedState[shapeType];
-    const vol = state.currentVolume;
-    const mountItemsWithPrices = getMountItemsWithPrices(shapeType, vol);
-    const mountMap = new Map(mountItemsWithPrices.map(i => [i.id, i]));
-    
-    let sizeText = "", basePrice = getBasePrice(shapeType);
-    if(shapeType === 'rect') sizeText = `${state.length}×${state.width}×1.5 м`;
-    else if(shapeType === 'circle') sizeText = `⌀${state.diameter}×1.5 м`;
-    else sizeText = `${state.length}×${state.width}×1.5 м`;
-    
-    const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i);
-    const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-    const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-    const selectedStairs = Array.from(state.stairs).map(id => ({ ...stairsItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-    const selectedEmbed = Array.from(state.embed).map(id => ({ ...embedItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-    
-    let rows = [{category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:basePrice, qty:1, sum:basePrice}];
-    
-    const addItem = (item, cat) => { 
-        rows.push({category: cat, name: item.name, price: item.price, qty: item.qty, sum: item.price});
-    };
-    
-    if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА"));
-    if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ"));
-    if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem({...radiusItem, price: getOptionPrice(shapeType, 'radius_corners')}, "ДОПОЛНИТЕЛЬНО");
-    if(shapeType === 'circle' && state.edge.has(edgeItem.id)) addItem({...edgeItem, price: getOptionPrice(shapeType, 'edge_finish')}, "ФИНИШНЫЙ БОРТ");
-    if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ"));
-    if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ"));
-    if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ"));
-    
-    const container = document.getElementById(`${shapeType}SpecTable`);
-    if(!container) return;
-    
-    if(rows.length === 1 && !selectedMount.length && !selectedLight.length && !selectedEquip.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
-        container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
-        return;
-    }
-    
-    let rowsHtml = "";
-    let lastCat = "";
-    let totalSum = 0;
-    
-    rows.forEach(row => {
-        if(row.category !== lastCat && row.category) { 
-            rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
-                            <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                         </tr>`;
-            lastCat = row.category; 
+        const state = selectedState[shapeType];
+        const vol = state.currentVolume;
+        const mountItemsWithPrices = getMountItemsWithPrices(shapeType, vol);
+        const mountMap = new Map(mountItemsWithPrices.map(i => [i.id, i]));
+        
+        let sizeText = "", basePrice = getBasePrice(shapeType);
+        if(shapeType === 'rect') sizeText = `${state.length}×${state.width}×1.5 м`;
+        else if(shapeType === 'circle') sizeText = `⌀${state.diameter}×1.5 м`;
+        else sizeText = `${state.length}×${state.width}×1.5 м`;
+        
+        const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i);
+        const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        const selectedStairs = Array.from(state.stairs).map(id => ({ ...stairsItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        const selectedEmbed = Array.from(state.embed).map(id => ({ ...embedItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        
+        let rows = [{category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:basePrice, qty:1, sum:basePrice}];
+        
+        const addItem = (item, cat) => { 
+            rows.push({category: cat, name: item.name, price: item.price, qty: item.qty, sum: item.price});
+        };
+        
+        if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА"));
+        if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ"));
+        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem({...radiusItem, price: getOptionPrice(shapeType, 'radius_corners')}, "ДОПОЛНИТЕЛЬНО");
+        if(shapeType === 'circle' && state.edge.has(edgeItem.id)) addItem({...edgeItem, price: getOptionPrice(shapeType, 'edge_finish')}, "ФИНИШНЫЙ БОРТ");
+        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ"));
+        if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ"));
+        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ"));
+        
+        const container = document.getElementById(`${shapeType}SpecTable`);
+        if(!container) return;
+        
+        if(rows.length === 1 && !selectedMount.length && !selectedLight.length && !selectedEquip.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
+            container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
+            return;
         }
-        const pricePerUnit = Math.round(row.price / (row.qty || 1));
-        rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                        <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                        <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
-                        <td style="padding:10px 8px; text-align:right; width:110px;">${pricePerUnit.toLocaleString('ru-RU')}</td>
-                        <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
+        
+        let rowsHtml = "";
+        let lastCat = "";
+        let totalSum = 0;
+        
+        rows.forEach(row => {
+            if(row.category !== lastCat && row.category) { 
+                rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
+                                <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
+                              </tr>`;
+                lastCat = row.category; 
+            }
+            const pricePerUnit = Math.round(row.price / (row.qty || 1));
+            rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                            <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                            <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
+                            <td style="padding:10px 8px; text-align:right; width:110px;">${pricePerUnit.toLocaleString('ru-RU')}</td>
+                            <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
+                          </tr>`;
+            totalSum += row.sum;
+        });
+        
+        rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
+                        <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
+                        <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
                       </tr>`;
-        totalSum += row.sum;
-    });
-    
-    rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
-                    <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
-                    <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
-                 </tr>`;
-    
-    container.innerHTML = `
-        <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Спецификация для заказа (скриншот для менеджера)</h4>
-        <div style="overflow-x:auto;">
-            <table style="width:100%; border-collapse:collapse; background:white; border-radius:16px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                <thead style="background:#d9eaf5; border-bottom:2px solid #b0cce4;">
-                    <tr>
-                        <th style="padding:12px 8px; text-align:left; font-weight:700; color:#1a5d83;">Наименование</th>
-                        <th style="padding:12px 8px; text-align:center; font-weight:700; color:#1a5d83; width:70px;">Кол-во</th>
-                        <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:110px;">Цена ед., ₽</th>
-                        <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:120px;">Сумма, ₽</th>
-                    </tr>
-                </thead>
-                <tbody>${rowsHtml}</tbody>
-            </table>
-        </div>
-    `;
-}
+        
+        container.innerHTML = `
+            <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Спецификация для заказа (скриншот для менеджера)</h4>
+            <div style="overflow-x:auto;">
+                <table style="width:100%; border-collapse:collapse; background:white; border-radius:16px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                    <thead style="background:#d9eaf5; border-bottom:2px solid #b0cce4;">
+                        <tr>
+                            <th style="padding:12px 8px; text-align:left; font-weight:700; color:#1a5d83;">Наименование</th>
+                            <th style="padding:12px 8px; text-align:center; font-weight:700; color:#1a5d83; width:70px;">Кол-во</th>
+                            <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:110px;">Цена ед., ₽</th>
+                            <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:120px;">Сумма, ₽</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>
+        `;
+    }
     
     function updateTotalAndSpec(shapeType){
         const state = selectedState[shapeType];
@@ -683,11 +730,16 @@
         if(shapeType === 'circle' && state.edge.has(edgeItem.id)) extra += getOptionPrice(shapeType, 'edge_finish');
         
         document.getElementById(`${shapeType}TotalCost`).innerText = (base + extra).toLocaleString('ru-RU');
+        
         if(shapeType === 'rect'){ 
-            document.getElementById('rectLengthVal').innerText = state.length + ' м'; 
-            document.getElementById('rectWidthVal').innerText = state.width + ' м'; 
+            const lengthSelect = document.getElementById('rectLengthSelect');
+            const widthSelect = document.getElementById('rectWidthSelect');
+            if(lengthSelect) lengthSelect.value = state.length;
+            if(widthSelect) widthSelect.value = state.width;
         }
-        else if(shapeType === 'circle') document.getElementById('circleDiamVal').innerText = state.diameter + ' м';
+        else if(shapeType === 'circle') {
+            document.getElementById('circleDiamVal').innerText = state.diameter + ' м';
+        }
         else{ 
             document.getElementById('ovalLengthVal').innerText = state.length + ' м'; 
             document.getElementById('ovalWidthVal').innerText = state.width + ' м'; 
@@ -891,29 +943,57 @@
     }
     
     function attachSizeListeners(shapeType){
-        if(shapeType === 'rect') document.querySelectorAll('#pageRect .size-btn').forEach(btn => { 
-            btn.onclick = () => { 
-                let dim = btn.dataset.dim, delta = parseFloat(btn.dataset.delta), s = selectedState.rect; 
-                if(dim === 'length'){ let v = s.length + delta; if(v >= 3 && v <= 9) s.length = v; } 
-                else if(dim === 'width'){ let v = s.width + delta; if(v >= 2 && v <= 5) s.width = v; } 
-                updateVolume(shapeType); 
-            }; 
-        });
-        else if(shapeType === 'circle') document.querySelectorAll('#pageCircle .size-btn').forEach(btn => { 
-            btn.onclick = () => { 
-                let v = selectedState.circle.diameter + parseFloat(btn.dataset.delta); 
-                if(v >= 1.5 && v <= 6) selectedState.circle.diameter = v; 
-                updateVolume(shapeType); 
-            }; 
-        });
-        else document.querySelectorAll('#pageOval .size-btn').forEach(btn => { 
-            btn.onclick = () => { 
-                let dim = btn.dataset.dim, delta = parseFloat(btn.dataset.delta), s = selectedState.oval; 
-                if(dim === 'length'){ let v = s.length + delta; if(v >= 3 && v <= 9) s.length = v; } 
-                else if(dim === 'width'){ let v = s.width + delta; if(v >= 2 && v <= 5) s.width = v; } 
-                updateVolume(shapeType); 
-            }; 
-        });
+        if(shapeType === 'rect') {
+            const lengthSelect = document.getElementById('rectLengthSelect');
+            const widthSelect = document.getElementById('rectWidthSelect');
+            
+            function updateRectSize() {
+                const length = parseFloat(lengthSelect.value);
+                const width = parseFloat(widthSelect.value);
+                const state = selectedState.rect;
+                state.length = length;
+                state.width = width;
+                updateVolume(shapeType);
+            }
+            
+            lengthSelect.addEventListener('change', updateRectSize);
+            widthSelect.addEventListener('change', updateRectSize);
+        }
+        else if(shapeType === 'circle') {
+            const availableDiameters = [1.5, 2, 2.5, 3, 3.5, 4];
+            document.querySelectorAll('#pageCircle .size-btn').forEach(btn => { 
+                btn.onclick = () => { 
+                    let v = selectedState.circle.diameter + parseFloat(btn.dataset.delta);
+                    let closest = availableDiameters.reduce((prev, curr) => {
+                        return (Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev);
+                    });
+                    if(availableDiameters.includes(closest)) {
+                        selectedState.circle.diameter = closest;
+                    }
+                    updateVolume(shapeType); 
+                }; 
+            });
+        }
+        else if(shapeType === 'oval') {
+            document.querySelectorAll('#pageOval .size-btn').forEach(btn => { 
+                btn.onclick = () => { 
+                    let dim = btn.dataset.dim, delta = parseFloat(btn.dataset.delta), s = selectedState.oval; 
+                    if(dim === 'length'){ 
+                        let v = s.length + delta; 
+                        let available = [3, 4, 5, 5.5, 6, 7, 8];
+                        let closest = available.reduce((prev, curr) => Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev);
+                        if(available.includes(closest)) s.length = closest;
+                    } 
+                    else if(dim === 'width'){ 
+                        let v = s.width + delta;
+                        let available = [2, 2.5, 3, 3.5, 4];
+                        let closest = available.reduce((prev, curr) => Math.abs(curr - v) < Math.abs(prev - v) ? curr : prev);
+                        if(available.includes(closest)) s.width = closest;
+                    } 
+                    updateVolume(shapeType); 
+                }; 
+            });
+        }
     }
     
     function updateVolume(shapeType){
