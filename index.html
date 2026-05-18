@@ -333,6 +333,25 @@
             margin-top: 1rem;
             cursor: pointer;
         }
+        
+        /* Плашка предупреждения */
+        .warning-plate {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 10px 0;
+            font-size: 0.85rem;
+            color: #e65100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .warning-plate::before {
+            content: "⚠️";
+            font-size: 1.1rem;
+        }
 
         @media (max-width: 780px) {
             .brand h1 { font-size: 3.2rem; }
@@ -411,6 +430,7 @@
                     <div>Высота 1.5 м</div>
                 </div>
                 <div id="rectVolumeInfo" style="font-size:0.75rem;"></div>
+                <div id="rectWarning" style="min-height: 60px;"></div>
             </div>
             <div class="section"><h3>🪜 Лестница</h3><div class="option-group" id="rectStairsGroup"></div></div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="rectEmbedGroup"></div></div>
@@ -602,8 +622,10 @@
         const state = selectedState[shapeType];
         if (shapeType === 'rect') {
             const key = `${state.length}x${state.width}`;
-            if (priceMatrix.rect[key]) return priceMatrix.rect[key];
-            return 0;
+            if (priceMatrix.rect[key] && priceMatrix.rect[key] > 0) {
+                return priceMatrix.rect[key];
+            }
+            return -1; // Возвращаем -1 для отсутствующих комбинаций
         }
         else if (shapeType === 'circle') {
             const key = `d${state.diameter}`;
@@ -642,13 +664,24 @@
         else if(shapeType === 'circle') sizeText = `⌀${state.diameter}×1.5 м`;
         else sizeText = `${state.length}×${state.width}×1.5 м`;
         
+        // Проверяем, есть ли цена для прямоугольного
+        const isPriceMissing = (shapeType === 'rect' && basePrice === -1);
+        const displayPrice = isPriceMissing ? 0 : basePrice;
+        
         const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i);
         const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedStairs = Array.from(state.stairs).map(id => ({ ...stairsItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedEmbed = Array.from(state.embed).map(id => ({ ...embedItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         
-        let rows = [{category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:basePrice, qty:1, sum:basePrice}];
+        let rows = [];
+        
+        // Добавляем строку чаши бассейна
+        if(isPriceMissing) {
+            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:0, qty:1, sum:0, priceText:"цену уточняйте"});
+        } else {
+            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:displayPrice, qty:1, sum:displayPrice});
+        }
         
         const addItem = (item, cat) => { 
             rows.push({category: cat, name: item.name, price: item.price, qty: item.qty, sum: item.price});
@@ -665,7 +698,7 @@
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
         
-        if(rows.length === 1 && !selectedMount.length && !selectedLight.length && !selectedEquip.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
+        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !selectedLight.length && !selectedEquip.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
             container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
             return;
         }
@@ -681,20 +714,38 @@
                               </tr>`;
                 lastCat = row.category; 
             }
-            const pricePerUnit = Math.round(row.price / (row.qty || 1));
-            rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                            <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                            <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
-                            <td style="padding:10px 8px; text-align:right; width:110px;">${pricePerUnit.toLocaleString('ru-RU')}</td>
-                            <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
-                          </tr>`;
-            totalSum += row.sum;
+            
+            if(row.priceText === "цену уточняйте") {
+                rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                                <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
+                                <td style="padding:10px 8px; text-align:right; width:110px; color:#e65100; font-weight:600;">цену уточняйте</td>
+                                <td style="padding:10px 8px; text-align:right; width:120px; color:#e65100; font-weight:600;">—</td>
+                              </tr>`;
+            } else {
+                const pricePerUnit = Math.round(row.price / (row.qty || 1));
+                rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                                <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
+                                <td style="padding:10px 8px; text-align:right; width:110px;">${pricePerUnit.toLocaleString('ru-RU')}</td>
+                                <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
+                              </tr>`;
+                totalSum += row.sum;
+            }
         });
         
-        rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
-                        <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
-                        <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
-                      </tr>`;
+        if(!isPriceMissing) {
+            rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
+                            <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
+                            <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
+                          </table>`;
+        } else {
+            rowsHtml += `<tr style="background:#fff3e0; border-top:2px solid #ff9800;">
+                            <td colspan="4" style="padding:12px 8px; text-align:center; font-weight:800; font-size:0.95rem; color:#e65100;">
+                                ⚠️ Для выбранного размера цена уточняется у менеджера
+                             </td>
+                          </tr>`;
+        }
         
         container.innerHTML = `
             <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Спецификация для заказа (скриншот для менеджера)</h4>
@@ -721,6 +772,7 @@
         const mountItemsWithPrices = getMountItemsWithPrices(shapeType, vol);
         const mountMap = new Map(mountItemsWithPrices.map(i => [i.id, i]));
         let extra = 0;
+        
         for(let id of state.mount) extra += mountMap.get(id)?.price || 0;
         for(let id of state.light) extra += getOptionPrice(shapeType, id);
         for(let id of state.equip) extra += getOptionPrice(shapeType, id);
@@ -729,7 +781,19 @@
         if(shapeType === 'rect' && state.radius.has(radiusItem.id)) extra += getOptionPrice(shapeType, 'radius_corners');
         if(shapeType === 'circle' && state.edge.has(edgeItem.id)) extra += getOptionPrice(shapeType, 'edge_finish');
         
-        document.getElementById(`${shapeType}TotalCost`).innerText = (base + extra).toLocaleString('ru-RU');
+        const totalSpan = document.getElementById(`${shapeType}TotalCost`);
+        
+        // Проверка на отсутствие цены для прямоугольных бассейнов
+        if(shapeType === 'rect' && base === -1) {
+            totalSpan.innerHTML = 'цену уточняйте';
+            totalSpan.style.fontSize = '1.2rem';
+            totalSpan.style.display = 'inline-block';
+            totalSpan.style.width = 'auto';
+        } else {
+            totalSpan.style.fontSize = '2rem';
+            const total = (base === -1 ? 0 : base) + extra;
+            totalSpan.innerText = total.toLocaleString('ru-RU');
+        }
         
         if(shapeType === 'rect'){ 
             const lengthSelect = document.getElementById('rectLengthSelect');
@@ -998,9 +1062,26 @@
     
     function updateVolume(shapeType){
         let vol = 0;
-        if(shapeType === 'rect') vol = calculateVolume('rect', {length: selectedState.rect.length, width: selectedState.rect.width});
+        if(shapeType === 'rect') {
+            vol = calculateVolume('rect', {length: selectedState.rect.length, width: selectedState.rect.width});
+            
+            // Проверка на негабарит (ширина больше 3м)
+            const warningDiv = document.getElementById('rectWarning');
+            if(warningDiv) {
+                if(selectedState.rect.width > 3) {
+                    warningDiv.innerHTML = `
+                        <div class="warning-plate">
+                            Данный размер изделия негабаритный, изготавливается на объекте заказчика. Цену уточняйте
+                        </div>
+                    `;
+                } else {
+                    warningDiv.innerHTML = '';
+                }
+            }
+        }
         else if(shapeType === 'circle') vol = calculateVolume('circle', {diameter: selectedState.circle.diameter});
         else vol = calculateVolume('oval', {length: selectedState.oval.length, width: selectedState.oval.width});
+        
         selectedState[shapeType].currentVolume = vol;
         const infoDiv = document.getElementById(`${shapeType}VolumeInfo`); 
         if(infoDiv) infoDiv.innerText = `Объем: ${vol.toFixed(2)} м³`;
