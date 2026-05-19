@@ -635,7 +635,7 @@
     function getOptionPrice(shapeType, id, diameter = null) {
         if (shapeType === 'circle' && diameter !== null) {
             const key = `${id}_d${diameter}`;
-            if (optionPrices[shapeType][key] && optionPrices[shapeType][key] > 0) {
+            if (optionPrices[shapeType][key] !== undefined && optionPrices[shapeType][key] > 0) {
                 return optionPrices[shapeType][key];
             }
             return 0;
@@ -687,21 +687,33 @@
                     let price = parseInt(match[3].replace(/[",]/g, '').trim());
                     
                     if (!isNaN(price) && price >= 0) {
-                        if (type === 'rect' || type === 'circle' || type === 'oval') {
-                            // Цены для чаши бассейна
-                            if (priceMatrix[type]) {
-                                priceMatrix[type][sizeKey] = price;
+                        // Для чаши бассейна (type = pool_circle, pool_rect, pool_oval)
+                        if (type === 'pool_circle') {
+                            if (priceMatrix.circle) {
+                                priceMatrix.circle[sizeKey] = price;
                                 loadedCount++;
-                                console.log(`✅ Чаша: ${type} ${sizeKey} = ${price} ₽`);
+                                console.log(`✅ Чаша круга: ${sizeKey} = ${price} ₽`);
                             }
                         }
-                        else if (shape === 'rect' || shape === 'circle' || shape === 'oval') {
-                            // Цены для опций (финишный борт, закладные и т.д.)
-                            const optionKey = `${type}_${sizeKey}`;
-                            if (!optionPrices[shape][optionKey]) {
-                                optionPrices[shape][optionKey] = price;
+                        else if (type === 'pool_rect') {
+                            if (priceMatrix.rect) {
+                                priceMatrix.rect[sizeKey] = price;
                                 loadedCount++;
-                                console.log(`✅ Опция: ${shape} ${optionKey} = ${price} ₽`);
+                            }
+                        }
+                        else if (type === 'pool_oval') {
+                            if (priceMatrix.oval) {
+                                priceMatrix.oval[sizeKey] = price;
+                                loadedCount++;
+                            }
+                        }
+                        // Для опций (edge_finish, embed_1, embed_2)
+                        else if (shape === 'circle') {
+                            const optionKey = `${type}_${sizeKey}`;
+                            if (!optionPrices.circle[optionKey]) {
+                                optionPrices.circle[optionKey] = price;
+                                loadedCount++;
+                                console.log(`✅ Опция круга: ${optionKey} = ${price} ₽`);
                             }
                         }
                     }
