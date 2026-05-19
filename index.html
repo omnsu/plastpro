@@ -232,7 +232,8 @@
             padding: 1.5rem;
         }
         .section { border-bottom: 1px solid #dfecf5; padding-bottom: 1rem; margin-bottom: 1rem; }
-        .section h3 { color: #1a638f; font-size: 1.25rem; margin-bottom: 0.8rem; display: flex; gap: 8px; align-items: center; }
+        .section h3 { color: #1a638f; font-size: 1.25rem; margin-bottom: 0.8rem; display: flex; gap: 8px; align-items: center; cursor: pointer; user-select: none; }
+        .section h3:hover { opacity: 0.8; }
         .option-group { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0; }
         .price-btn {
             background: #f9fdfe;
@@ -247,6 +248,74 @@
         }
         .price-btn.selected { background: #2c7cb6; border-color: #0e4b75; color: white; }
         .price-btn:hover { background: #e5f0fa; transform: translateY(-2px); }
+        
+        /* Стили для карточек лестниц */
+        .stairs-card {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            text-align: left;
+            width: 100%;
+            padding: 10px !important;
+            border-radius: 16px !important;
+        }
+        .stairs-image {
+            width: 60px;
+            height: 60px;
+            flex-shrink: 0;
+            background: #f0f5fa;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stairs-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .stairs-info {
+            flex: 1;
+        }
+        .stairs-name {
+            font-weight: 700;
+            color: #0a3b5c;
+            font-size: 0.9rem;
+        }
+        .stairs-desc {
+            font-size: 0.7rem;
+            color: #6b8cae;
+            margin: 2px 0;
+        }
+        .stairs-install {
+            font-size: 0.65rem;
+            color: #2a90c5;
+            margin-top: 2px;
+        }
+        .stairs-price {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #1a6d9e;
+            margin-top: 4px;
+        }
+        .price-btn.selected .stairs-price {
+            color: white;
+        }
+        
+        /* Стили для сворачивания секции лестниц */
+        .stairs-collapsed {
+            display: none;
+        }
+        .stairs-expanded {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .size-row { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 15px; }
         .size-control { background: #ecf3fa; padding: 6px 14px; border-radius: 50px; display: flex; align-items: center; gap: 12px; }
         .size-value { font-weight: 800; background: white; padding: 4px 12px; border-radius: 40px; min-width: 65px; text-align: center; }
@@ -269,7 +338,7 @@
         .total-cost { background: linear-gradient(125deg, #0a3557, #126896); color: white; border-radius: 50px; padding: 16px 20px; text-align: center; margin-top: 20px; }
         .total-cost span { font-size: 2rem; font-weight: 800; }
         
-        /* Маленький текст под итогом - голубой, под плашкой */
+        /* Маленький текст под итогом */
         .total-disclaimer {
             font-size: 0.65rem;
             color: #1a638f;
@@ -367,6 +436,8 @@
             .corner-logo { font-size: 1.2rem; top: 12px; left: 16px; }
             .two-columns { flex-direction: column; }
             .gallery-parallax { aspect-ratio: 16 / 9; }
+            .stairs-card { flex-wrap: wrap; }
+            .stairs-image { width: 100%; height: 120px; }
         }
     </style>
 </head>
@@ -441,7 +512,10 @@
                 <div id="rectVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="rectWarning" style="min-height: 60px;"></div>
             </div>
-            <div class="section"><h3>🪜 Лестница</h3><div class="option-group" id="rectStairsGroup"></div></div>
+            <div class="section">
+                <h3 onclick="toggleStairsSection('rect')">🪜 Лестница <span id="rectStairsToggleIcon">▼</span></h3>
+                <div id="rectStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
+            </div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="rectEmbedGroup"></div></div>
             <div class="section"><h3>〰️ Радиусные углы</h3><div class="option-group" id="rectRadiusGroup"></div></div>
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="rectMountGroup"></div></div>
@@ -498,7 +572,10 @@
                 <div id="circleVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="circleWarning" style="min-height: 60px;"></div>
             </div>
-            <div class="section"><h3>🪜 Лестница</h3><div class="option-group" id="circleStairsGroup"></div></div>
+            <div class="section">
+                <h3 onclick="toggleStairsSection('circle')">🪜 Лестница <span id="circleStairsToggleIcon">▼</span></h3>
+                <div id="circleStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
+            </div>
             <div class="section"><h3>🔘 Финишный борт</h3><div class="option-group" id="circleEdgeGroup"></div></div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="circleEmbedGroup"></div></div>
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="circleMountGroup"></div></div>
@@ -563,7 +640,10 @@
                 <div id="ovalVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="ovalWarning" style="min-height: 60px;"></div>
             </div>
-            <div class="section"><h3>🪜 Лестница</h3><div class="option-group" id="ovalStairsGroup"></div></div>
+            <div class="section">
+                <h3 onclick="toggleStairsSection('oval')">🪜 Лестница <span id="ovalStairsToggleIcon">▼</span></h3>
+                <div id="ovalStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
+            </div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="ovalEmbedGroup"></div></div>
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="ovalMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="ovalLightGroup"></div></div>
@@ -592,12 +672,94 @@
         oval: {}
     };
     
-    // Хранилище цен для опций (для каждого типа бассейна отдельно)
+    // Хранилище цен для опций
     let optionPrices = {
         rect: {},
         circle: {},
         oval: {}
     };
+    
+    // ========== КАТАЛОГ ЛЕСТНИЦ (фото и описание в коде) ==========
+    const stairsCatalog = [
+        { 
+            id: "stairs_corner", 
+            name: "Угловая", 
+            description: "Компактная угловая лестница",
+            image: "stairs_corner.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_corner"
+        },
+        { 
+            id: "stairs_bench_full", 
+            name: "Лавочка во всю ширину", 
+            description: "Вторая ступень +6.000 руб",
+            image: "stairs_bench.png",
+            installType: "Самостоятельно стоящая",
+            priceId: "stairs_bench_full",
+            hasDynamicPrice: true,
+            priceOptions: [
+                { width: 2, price: 25000 },
+                { width: 2.5, price: 30000 },
+                { width: 3, price: 35000 }
+            ]
+        },
+        { 
+            id: "stairs_straight", 
+            name: "Угловая прямая", 
+            description: "Прямая строгая угловая лестница",
+            image: "stairs_straight.png",
+            installType: "Самостоятельно стоящая",
+            priceId: "stairs_straight"
+        },
+        { 
+            id: "stairs_roman", 
+            name: "Угловая римская", 
+            description: "Элегантная угловая лестница в римском стиле",
+            image: "stairs_roman.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_roman"
+        },
+        { 
+            id: "stairs_full_width_4", 
+            name: "Во всю ширину (4 ступени)", 
+            description: "Лестница на всю ширину бассейна, 4 ступени",
+            image: "stairs_full_width_4.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_full_width_4"
+        },
+        { 
+            id: "stairs_full_width_3", 
+            name: "Во всю ширину (3 ступени)", 
+            description: "Лестница на всю ширину бассейна, 3 ступени",
+            image: "stairs_full_width_3.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_full_width_3"
+        },
+        { 
+            id: "stairs_external_straight", 
+            name: "Внешняя прямая", 
+            description: "Прямая лестница для внешней установки",
+            image: "stairs_external.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_external_straight"
+        },
+        { 
+            id: "stairs_roman_inner", 
+            name: "Римская внутренняя", 
+            description: "Римская лестница для внутренней установки",
+            image: "stairs_roman_inner.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_roman_inner"
+        },
+        { 
+            id: "stairs_roman_outer", 
+            name: "Римская внешняя", 
+            description: "Римская лестница для внешней установки",
+            image: "stairs_roman_outer.png",
+            installType: "Под бетонирование",
+            priceId: "stairs_roman_outer"
+        }
+    ];
     
     // ---------- ОПИСАНИЕ ТОВАРОВ ----------
     const mountItems = [
@@ -619,11 +781,6 @@
         { name: "Хлор-генератор", qty: 1, id: "equip4", category: "Оборудование" }
     ];
     
-    const stairsItems = [
-        { name: "Лестница Римская", qty: 1, id: "stairs_roman", category: "Лестница" },
-        { name: "Лестница Прямая", qty: 1, id: "stairs_straight", category: "Лестница" }
-    ];
-    
     const embedItems = [
         { name: "Закладная под вагонку (1 шт)", qty: 1, id: "embed_1", category: "Закладные детали" },
         { name: "Закладные под вагонку (2 шт)", qty: 2, id: "embed_2", category: "Закладные детали" }
@@ -632,6 +789,7 @@
     const radiusItem = { name: "Радиусные углы (скругление)", qty: 1, id: "radius_corners", category: "Дополнительно" };
     const edgeItem = { name: "Финишный борт (декоративный)", qty: 1, id: "edge_finish", category: "Финишный борт" };
     
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ЦЕНАМИ ==========
     function getOptionPrice(shapeType, id, diameter = null) {
         if (shapeType === 'circle' && diameter !== null) {
             const key = `${id}_d${diameter}`;
@@ -641,6 +799,22 @@
             return 0;
         }
         return optionPrices[shapeType]?.[id] || 0;
+    }
+    
+    function getStairsPrice(shapeType, stairId, width = null) {
+        const tablePrice = getOptionPrice(shapeType, stairId);
+        if (tablePrice > 0) return tablePrice;
+        
+        const stair = stairsCatalog.find(s => s.id === stairId);
+        if (stair) {
+            if (stair.hasDynamicPrice && width) {
+                const option = stair.priceOptions.find(opt => opt.width === width);
+                if (option) return option.price;
+            } else if (stair.priceId) {
+                return getOptionPrice(shapeType, stair.priceId);
+            }
+        }
+        return 0;
     }
     
     function getDynamicStairsPrice(shapeType, vol) {
@@ -661,12 +835,14 @@
         });
     }
     
+    // ========== СОСТОЯНИЕ ВЫБРАННЫХ ОПЦИЙ ==========
     const selectedState = {
         rect: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), radius: new Set(), length: 3, width: 2, currentVolume: 0 },
         circle: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), edge: new Set(), diameter: 3, currentVolume: 0 },
         oval: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), length: 4, width: 2.5, currentVolume: 0 }
     };
     
+    // ========== ЗАГРУЗКА ЦЕН ИЗ GOOGLE SHEETS ==========
     async function loadPricesFromGoogleSheets() {
         try {
             console.log('🔄 Загрузка цен из Google Sheets...');
@@ -687,12 +863,10 @@
                     let price = parseInt(match[3].replace(/[",]/g, '').trim());
                     
                     if (!isNaN(price) && price >= 0) {
-                        // Для чаши бассейна (type = pool_circle, pool_rect, pool_oval)
                         if (type === 'pool_circle') {
                             if (priceMatrix.circle) {
                                 priceMatrix.circle[sizeKey] = price;
                                 loadedCount++;
-                                console.log(`✅ Чаша круга: ${sizeKey} = ${price} ₽`);
                             }
                         }
                         else if (type === 'pool_rect') {
@@ -707,21 +881,20 @@
                                 loadedCount++;
                             }
                         }
-                        // Для опций (edge_finish, embed_1, embed_2)
-                        else if (shape === 'circle') {
+                        else if (shape === 'rect' || shape === 'circle' || shape === 'oval') {
                             const optionKey = `${type}_${sizeKey}`;
-                            if (!optionPrices.circle[optionKey]) {
-                                optionPrices.circle[optionKey] = price;
+                            if (!optionPrices[shape][optionKey]) {
+                                optionPrices[shape][optionKey] = price;
                                 loadedCount++;
-                                console.log(`✅ Опция круга: ${optionKey} = ${price} ₽`);
+                            }
+                            if (!optionPrices[shape][type]) {
+                                optionPrices[shape][type] = price;
                             }
                         }
                     }
                 }
             }
             console.log(`✅ Загружено ${loadedCount} цен из Google Sheets`);
-            console.log('💰 Цены чаш для круга:', priceMatrix.circle);
-            console.log('🔧 Цены опций для круга:', optionPrices.circle);
             return true;
         } catch (error) {
             console.error('❌ Ошибка загрузки:', error);
@@ -729,6 +902,7 @@
         }
     }
     
+    // ========== ПОЛУЧЕНИЕ ЦЕНЫ ЧАШИ БАССЕЙНА ==========
     function getBasePrice(shapeType) {
         const state = selectedState[shapeType];
         if (shapeType === 'rect') {
@@ -755,6 +929,7 @@
         return 0;
     }
     
+    // ========== РАСЧЁТ ОБЪЁМА ==========
     function calculateVolume(shape, dims) { 
         const h = 1.5; 
         if(shape === 'rect') return dims.length * dims.width * h; 
@@ -768,6 +943,49 @@
         return 0; 
     }
     
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ЛЕСТНИЦАМИ (СВОРАЧИВАНИЕ/РАЗВОРАЧИВАНИЕ) ==========
+    function toggleStairsSection(shapeType) {
+        const stairsGroup = document.getElementById(`${shapeType}StairsGroup`);
+        const toggleIcon = document.getElementById(`${shapeType}StairsToggleIcon`);
+        
+        if (!stairsGroup || !toggleIcon) return;
+        
+        if (stairsGroup.classList.contains('stairs-collapsed') || stairsGroup.style.display === 'none') {
+            stairsGroup.classList.remove('stairs-collapsed');
+            stairsGroup.classList.add('stairs-expanded');
+            stairsGroup.style.display = 'flex';
+            toggleIcon.innerHTML = '▲';
+            localStorage.setItem(`stairs_${shapeType}_open`, 'true');
+        } else {
+            stairsGroup.classList.remove('stairs-expanded');
+            stairsGroup.classList.add('stairs-collapsed');
+            stairsGroup.style.display = 'none';
+            toggleIcon.innerHTML = '▼';
+            localStorage.setItem(`stairs_${shapeType}_open`, 'false');
+        }
+    }
+    
+    function restoreStairsState(shapeType) {
+        const isOpen = localStorage.getItem(`stairs_${shapeType}_open`) === 'true';
+        const stairsGroup = document.getElementById(`${shapeType}StairsGroup`);
+        const toggleIcon = document.getElementById(`${shapeType}StairsToggleIcon`);
+        
+        if (stairsGroup && toggleIcon) {
+            if (isOpen) {
+                stairsGroup.classList.remove('stairs-collapsed');
+                stairsGroup.classList.add('stairs-expanded');
+                stairsGroup.style.display = 'flex';
+                toggleIcon.innerHTML = '▲';
+            } else {
+                stairsGroup.classList.remove('stairs-expanded');
+                stairsGroup.classList.add('stairs-collapsed');
+                stairsGroup.style.display = 'none';
+                toggleIcon.innerHTML = '▼';
+            }
+        }
+    }
+    
+    // ========== ОТОБРАЖЕНИЕ СПЕЦИФИКАЦИИ ==========
     function renderFullSpecTable(shapeType) {
         const state = selectedState[shapeType];
         const vol = state.currentVolume;
@@ -785,7 +1003,24 @@
         const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i);
         const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-        const selectedStairs = Array.from(state.stairs).map(id => ({ ...stairsItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        
+        // Получаем выбранные лестницы с ценами
+        const selectedStairs = [];
+        for (let stairId of state.stairs) {
+            const stair = stairsCatalog.find(s => s.id === stairId);
+            if (stair) {
+                let price = 0;
+                if (stair.hasDynamicPrice && shapeType === 'rect') {
+                    const option = stair.priceOptions.find(opt => opt.width === state.width);
+                    if (option) price = option.price;
+                } else {
+                    price = getOptionPrice(shapeType, stair.priceId);
+                }
+                if (price > 0) {
+                    selectedStairs.push({ ...stair, price: price });
+                }
+            }
+        }
         
         // Для круглого бассейна получаем цены закладных с учетом диаметра
         let selectedEmbed = [];
@@ -807,27 +1042,26 @@
             rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:displayPrice, qty:1, sum:displayPrice});
         }
         
-        const addItem = (item, cat) => { 
-            rows.push({category: cat, name: item.name, price: item.price, qty: item.qty, sum: item.price});
+        const addItem = (item, cat, price) => { 
+            rows.push({category: cat, name: item.name, price: price, qty: item.qty || 1, sum: price});
         };
         
-        if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА"));
-        if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ"));
-        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem({...radiusItem, price: getOptionPrice(shapeType, 'radius_corners')}, "ДОПОЛНИТЕЛЬНО");
+        if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА", item.price));
+        if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ", item.price));
+        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "ДОПОЛНИТЕЛЬНО", getOptionPrice(shapeType, 'radius_corners'));
         
-        // Для круглого бассейна проверяем цену финишного борта
         if (shapeType === 'circle' && state.edge.has(edgeItem.id)) {
             const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
             if (edgePrice === 0 || (state.diameter >= 6 && state.diameter <= 8)) {
-                addItem({...edgeItem, price: 0, priceText: "цену уточняйте"}, "ФИНИШНЫЙ БОРТ");
+                addItem({...edgeItem, priceText: "цену уточняйте"}, "ФИНИШНЫЙ БОРТ", 0);
             } else {
-                addItem({...edgeItem, price: edgePrice}, "ФИНИШНЫЙ БОРТ");
+                addItem(edgeItem, "ФИНИШНЫЙ БОРТ", edgePrice);
             }
         }
         
-        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ"));
-        if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ"));
-        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ"));
+        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ", item.price));
+        if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ", item.price));
+        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ", item.price));
         
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
@@ -845,7 +1079,7 @@
             if(row.category !== lastCat && row.category) { 
                 rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
                                 <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                              </td>`;
+                              </tr>`;
                 lastCat = row.category; 
             }
             
@@ -872,12 +1106,12 @@
             rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
                             <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
                             <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
-                          </tr>`;
+                          <tr>`;
         } else {
             rowsHtml += `<tr style="background:#fff3e0; border-top:2px solid #ff9800;">
                             <td colspan="4" style="padding:12px 8px; text-align:center; font-weight:800; font-size:0.95rem; color:#e65100;">
                                 ⚠️ Для выбранного размера цена уточняется у менеджера
-                            </td>
+                             </td>
                           </tr>`;
         }
         
@@ -899,6 +1133,7 @@
         `;
     }
     
+    // ========== ОБНОВЛЕНИЕ ИТОГОВОЙ СТОИМОСТИ ==========
     function updateTotalAndSpec(shapeType){
         const state = selectedState[shapeType];
         let base = getBasePrice(shapeType);
@@ -910,9 +1145,12 @@
         for(let id of state.mount) extra += mountMap.get(id)?.price || 0;
         for(let id of state.light) extra += getOptionPrice(shapeType, id);
         for(let id of state.equip) extra += getOptionPrice(shapeType, id);
-        for(let id of state.stairs) extra += getOptionPrice(shapeType, id);
         
-        // Для круглого бассейна
+        for(let id of state.stairs) {
+            const price = getStairsPrice(shapeType, id, state.width);
+            if (price > 0) extra += price;
+        }
+        
         if (shapeType === 'circle') {
             for(let id of state.embed) {
                 const price = getOptionPrice(shapeType, id, state.diameter);
@@ -959,6 +1197,81 @@
         renderFullSpecTable(shapeType);
     }
     
+    // ========== ОТОБРАЖЕНИЕ ЛЕСТНИЦ ==========
+    function renderStairs(shapeType){
+        const container = document.getElementById(`${shapeType}StairsGroup`);
+        if(!container) return;
+        
+        // Сохраняем состояние видимости
+        const wasExpanded = container.classList.contains('stairs-expanded') || container.style.display === 'flex';
+        
+        const selected = selectedState[shapeType].stairs;
+        const currentWidth = (shapeType === 'rect') ? selectedState.rect.width : null;
+        
+        container.innerHTML = '';
+        
+        stairsCatalog.forEach(stair => {
+            let price = 0;
+            let isAvailable = true;
+            
+            if (stair.hasDynamicPrice && currentWidth) {
+                const option = stair.priceOptions.find(opt => opt.width === currentWidth);
+                if (option) {
+                    price = option.price;
+                } else {
+                    isAvailable = false;
+                }
+            } else {
+                price = getOptionPrice(shapeType, stair.priceId);
+                if (price === 0) isAvailable = false;
+            }
+            
+            const btn = document.createElement('div');
+            btn.className = 'price-btn stairs-card';
+            if (selected.has(stair.id)) btn.classList.add('selected');
+            
+            btn.innerHTML = `
+                <div class="stairs-image">
+                    <img src="${stair.image}" alt="${stair.name}" onerror="this.src='placeholder.png'">
+                </div>
+                <div class="stairs-info">
+                    <div class="stairs-name">${stair.name}</div>
+                    <div class="stairs-desc">${stair.description}</div>
+                    <div class="stairs-install">${stair.installType}</div>
+                    <div class="stairs-price">${isAvailable && price > 0 ? '+' + price.toLocaleString('ru-RU') + ' ₽' : 'цену уточняйте'}</div>
+                </div>
+            `;
+            
+            btn.onclick = () => {
+                if (!isAvailable || price === 0) {
+                    alert('Цена на данную лестницу для выбранного размера уточняется у менеджера');
+                    return;
+                }
+                if (selected.has(stair.id)) {
+                    selected.delete(stair.id);
+                } else {
+                    selected.clear();
+                    selected.add(stair.id);
+                }
+                renderStairs(shapeType);
+                updateTotalAndSpec(shapeType);
+            };
+            container.appendChild(btn);
+        });
+        
+        // Восстанавливаем состояние видимости
+        if (wasExpanded) {
+            container.classList.remove('stairs-collapsed');
+            container.classList.add('stairs-expanded');
+            container.style.display = 'flex';
+        } else {
+            container.classList.remove('stairs-expanded');
+            container.classList.add('stairs-collapsed');
+            container.style.display = 'none';
+        }
+    }
+    
+    // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ОТОБРАЖЕНИЯ ==========
     function reRenderMount(shapeType){
         const vol = selectedState[shapeType].currentVolume;
         const items = getMountItemsWithPrices(shapeType, vol);
@@ -976,26 +1289,6 @@
                 if(selected.has(opt.id)) selected.delete(opt.id); 
                 else selected.add(opt.id); 
                 reRenderMount(shapeType); 
-                updateTotalAndSpec(shapeType); 
-            };
-            container.appendChild(btn);
-        });
-    }
-    
-    function renderStairs(shapeType){
-        const container = document.getElementById(`${shapeType}StairsGroup`);
-        if(!container) return;
-        const selected = selectedState[shapeType].stairs;
-        container.innerHTML = '';
-        stairsItems.forEach(opt => {
-            const btn = document.createElement('div'); 
-            btn.className = 'price-btn';
-            if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} +${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
-            btn.onclick = () => { 
-                if(selected.has(opt.id)) selected.delete(opt.id); 
-                else { selected.clear(); selected.add(opt.id); } 
-                renderStairs(shapeType); 
                 updateTotalAndSpec(shapeType); 
             };
             container.appendChild(btn);
@@ -1138,6 +1431,7 @@
         });
     }
     
+    // ========== ГАЛЕРЕЯ И ПАРАЛЛАКС ==========
     function setupParallax(shapeType) {
         const container = document.getElementById(`${shapeType}Parallax`);
         if (!container) return;
@@ -1192,6 +1486,7 @@
         setupParallax(shapeType);
     }
     
+    // ========== ОБРАБОТЧИКИ РАЗМЕРОВ ==========
     function attachSizeListeners(shapeType){
         if(shapeType === 'rect') {
             const lengthSelect = document.getElementById('rectLengthSelect');
@@ -1204,6 +1499,7 @@
                 state.length = length;
                 state.width = width;
                 updateVolume(shapeType);
+                renderStairs('rect');
             }
             
             lengthSelect.addEventListener('change', updateRectSize);
@@ -1217,7 +1513,6 @@
                 const state = selectedState.circle;
                 state.diameter = diameter;
                 updateVolume(shapeType);
-                // Обновляем кнопки опций при изменении диаметра
                 renderEmbed('circle');
                 renderEdge('circle');
             }
@@ -1242,6 +1537,7 @@
         }
     }
     
+    // ========== ОБНОВЛЕНИЕ ОБЪЁМА ==========
     function updateVolume(shapeType){
         let vol = 0;
         if(shapeType === 'rect') {
@@ -1300,6 +1596,7 @@
         updateTotalAndSpec(shapeType);
     }
     
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
     async function init(){
         await loadPricesFromGoogleSheets();
         selectedState.rect.currentVolume = calculateVolume('rect', {length: 3, width: 2});
@@ -1318,6 +1615,11 @@
             attachSizeListeners(sh);
             updateVolume(sh);
         });
+        
+        // Восстанавливаем состояние секций лестниц
+        restoreStairsState('rect');
+        restoreStairsState('circle');
+        restoreStairsState('oval');
         
         setInterval(async () => {
             await loadPricesFromGoogleSheets();
