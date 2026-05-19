@@ -268,6 +268,15 @@
         }
         .total-cost { background: linear-gradient(125deg, #0a3557, #126896); color: white; border-radius: 50px; padding: 16px 20px; text-align: center; margin-top: 20px; }
         .total-cost span { font-size: 2rem; font-weight: 800; }
+        
+        /* Маленький текст под итогом */
+        .disclaimer {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            margin-top: 8px;
+            line-height: 1.3;
+        }
 
         .spec-table {
             margin-top: 24px;
@@ -438,7 +447,13 @@
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="rectMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="rectLightGroup"></div></div>
             <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="rectEquipGroup"></div></div>
-            <div class="total-cost">💰 ИТОГО: <span id="rectTotalCost">0</span> ₽</div>
+            <div class="total-cost">
+                💰 ИТОГО: <span id="rectTotalCost">0</span> ₽
+                <div class="disclaimer">
+                    * Цена ориентировочная, не учтены доставка и установка.<br>
+                    Более подробную информацию уточняйте у менеджеров.
+                </div>
+            </div>
             <div class="spec-table" id="rectSpecTable"><h4>📋 Спецификация для заказа (скриншот для менеджера)</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
             <button class="back-home">← На главную</button>
         </div>
@@ -464,7 +479,13 @@
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="circleMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="circleLightGroup"></div></div>
             <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="circleEquipGroup"></div></div>
-            <div class="total-cost">💰 ИТОГО: <span id="circleTotalCost">0</span> ₽</div>
+            <div class="total-cost">
+                💰 ИТОГО: <span id="circleTotalCost">0</span> ₽
+                <div class="disclaimer">
+                    * Цена ориентировочная, не учтены доставка и установка.<br>
+                    Более подробную информацию уточняйте у менеджеров.
+                </div>
+            </div>
             <div class="spec-table" id="circleSpecTable"><h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
             <button class="back-home">← На главную</button>
         </div>
@@ -522,7 +543,13 @@
             <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="ovalMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="ovalLightGroup"></div></div>
             <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="ovalEquipGroup"></div></div>
-            <div class="total-cost">💰 ИТОГО: <span id="ovalTotalCost">0</span> ₽</div>
+            <div class="total-cost">
+                💰 ИТОГО: <span id="ovalTotalCost">0</span> ₽
+                <div class="disclaimer">
+                    * Цена ориентировочная, не учтены доставка и установка.<br>
+                    Более подробную информацию уточняйте у менеджеров.
+                </div>
+            </div>
             <div class="spec-table" id="ovalSpecTable"><h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
             <button class="back-home">← На главную</button>
         </div>
@@ -744,7 +771,7 @@
             if(row.category !== lastCat && row.category) { 
                 rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
                                 <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                              </tr>`;
+                              <tr>`;
                 lastCat = row.category; 
             }
             
