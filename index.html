@@ -632,7 +632,14 @@
     const radiusItem = { name: "Радиусные углы (скругление)", qty: 1, id: "radius_corners", category: "Дополнительно" };
     const edgeItem = { name: "Финишный борт (декоративный)", qty: 1, id: "edge_finish", category: "Финишный борт" };
     
-    function getOptionPrice(shapeType, id) {
+    function getOptionPrice(shapeType, id, diameter = null) {
+        if (shapeType === 'circle' && diameter !== null) {
+            const key = `${id}_d${diameter}`;
+            if (optionPrices[shapeType][key] && optionPrices[shapeType][key] > 0) {
+                return optionPrices[shapeType][key];
+            }
+            return 0;
+        }
         return optionPrices[shapeType]?.[id] || 0;
     }
     
@@ -679,23 +686,30 @@
                     let sizeKey = match[2].replace(/[",]/g, '').trim();
                     let price = parseInt(match[3].replace(/[",]/g, '').trim());
                     
-                    if (!isNaN(price)) {
+                    if (!isNaN(price) && price >= 0) {
                         if (type === 'rect' || type === 'circle' || type === 'oval') {
+                            // Цены для чаши бассейна
                             if (priceMatrix[type]) {
                                 priceMatrix[type][sizeKey] = price;
                                 loadedCount++;
+                                console.log(`✅ Чаша: ${type} ${sizeKey} = ${price} ₽`);
                             }
                         }
                         else if (shape === 'rect' || shape === 'circle' || shape === 'oval') {
-                            if (!optionPrices[shape][type]) {
-                                optionPrices[shape][type] = price;
+                            // Цены для опций (финишный борт, закладные и т.д.)
+                            const optionKey = `${type}_${sizeKey}`;
+                            if (!optionPrices[shape][optionKey]) {
+                                optionPrices[shape][optionKey] = price;
                                 loadedCount++;
+                                console.log(`✅ Опция: ${shape} ${optionKey} = ${price} ₽`);
                             }
                         }
                     }
                 }
             }
             console.log(`✅ Загружено ${loadedCount} цен из Google Sheets`);
+            console.log('💰 Цены чаш для круга:', priceMatrix.circle);
+            console.log('🔧 Цены опций для круга:', optionPrices.circle);
             return true;
         } catch (error) {
             console.error('❌ Ошибка загрузки:', error);
@@ -760,7 +774,18 @@
         const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedStairs = Array.from(state.stairs).map(id => ({ ...stairsItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-        const selectedEmbed = Array.from(state.embed).map(id => ({ ...embedItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        
+        // Для круглого бассейна получаем цены закладных с учетом диаметра
+        let selectedEmbed = [];
+        if (shapeType === 'circle') {
+            selectedEmbed = Array.from(state.embed).map(id => {
+                const price = getOptionPrice(shapeType, id, state.diameter);
+                const item = embedItems.find(i => i.id === id);
+                return { ...item, price: price > 0 ? price : 0 };
+            }).filter(i => i && i.price > 0);
+        } else {
+            selectedEmbed = Array.from(state.embed).map(id => ({ ...embedItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        }
         
         let rows = [];
         
@@ -777,7 +802,17 @@
         if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА"));
         if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ"));
         if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem({...radiusItem, price: getOptionPrice(shapeType, 'radius_corners')}, "ДОПОЛНИТЕЛЬНО");
-        if(shapeType === 'circle' && state.edge.has(edgeItem.id)) addItem({...edgeItem, price: getOptionPrice(shapeType, 'edge_finish')}, "ФИНИШНЫЙ БОРТ");
+        
+        // Для круглого бассейна проверяем цену финишного борта
+        if (shapeType === 'circle' && state.edge.has(edgeItem.id)) {
+            const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
+            if (edgePrice === 0 || (state.diameter >= 6 && state.diameter <= 8)) {
+                addItem({...edgeItem, price: 0, priceText: "цену уточняйте"}, "ФИНИШНЫЙ БОРТ");
+            } else {
+                addItem({...edgeItem, price: edgePrice}, "ФИНИШНЫЙ БОРТ");
+            }
+        }
+        
         if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ"));
         if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ"));
         if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ"));
@@ -864,9 +899,21 @@
         for(let id of state.light) extra += getOptionPrice(shapeType, id);
         for(let id of state.equip) extra += getOptionPrice(shapeType, id);
         for(let id of state.stairs) extra += getOptionPrice(shapeType, id);
-        for(let id of state.embed) extra += getOptionPrice(shapeType, id);
-        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) extra += getOptionPrice(shapeType, 'radius_corners');
-        if(shapeType === 'circle' && state.edge.has(edgeItem.id)) extra += getOptionPrice(shapeType, 'edge_finish');
+        
+        // Для круглого бассейна
+        if (shapeType === 'circle') {
+            for(let id of state.embed) {
+                const price = getOptionPrice(shapeType, id, state.diameter);
+                if (price > 0) extra += price;
+            }
+            if (state.edge.has(edgeItem.id)) {
+                const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
+                if (edgePrice > 0 && state.diameter < 6) extra += edgePrice;
+            }
+        } else {
+            for(let id of state.embed) extra += getOptionPrice(shapeType, id);
+            if(shapeType === 'rect' && state.radius.has(radiusItem.id)) extra += getOptionPrice(shapeType, 'radius_corners');
+        }
         
         const totalSpan = document.getElementById(`${shapeType}TotalCost`);
         
@@ -948,16 +995,38 @@
         if(!container) return;
         const selected = selectedState[shapeType].embed;
         container.innerHTML = '';
+        
+        const currentDiameter = shapeType === 'circle' ? selectedState.circle.diameter : null;
+        
         embedItems.forEach(opt => {
             const btn = document.createElement('div'); 
             btn.className = 'price-btn';
+            
+            let price;
+            if (shapeType === 'circle' && currentDiameter) {
+                price = getOptionPrice(shapeType, opt.id, currentDiameter);
+            } else {
+                price = getOptionPrice(shapeType, opt.id);
+            }
+            
             if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} +${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
-            btn.onclick = () => { 
+            
+            if (price > 0) {
+                btn.innerHTML = `${opt.name} +${price.toLocaleString('ru-RU')} ₽`;
+            } else {
+                btn.innerHTML = `${opt.name} (цену уточняйте)`;
+                btn.style.opacity = '0.7';
+            }
+            
+            btn.onclick = () => {
+                if (price === 0) {
+                    alert('Цена на данную опцию для выбранного размера уточняется у менеджера');
+                    return;
+                }
                 if(selected.has(opt.id)) selected.delete(opt.id);
-                else { selected.clear(); selected.add(opt.id); } 
-                renderEmbed(shapeType); 
-                updateTotalAndSpec(shapeType); 
+                else { selected.clear(); selected.add(opt.id); }
+                renderEmbed(shapeType);
+                updateTotalAndSpec(shapeType);
             };
             container.appendChild(btn);
         });
@@ -1008,11 +1077,27 @@
         if(!container) return;
         const selected = selectedState.circle.edge;
         container.innerHTML = '';
+        
+        const currentDiameter = selectedState.circle.diameter;
+        const edgePrice = getOptionPrice('circle', 'edge_finish', currentDiameter);
+        const isPriceMissing = (edgePrice === 0 || currentDiameter >= 6);
+        
         const btn = document.createElement('div'); 
         btn.className = 'price-btn';
         if(selected.has(edgeItem.id)) btn.classList.add('selected');
-        btn.innerHTML = `${edgeItem.name} +${getOptionPrice('circle', 'edge_finish').toLocaleString('ru-RU')} ₽`;
+        
+        if (isPriceMissing) {
+            btn.innerHTML = `${edgeItem.name} (цену уточняйте)`;
+            btn.style.opacity = '0.7';
+        } else {
+            btn.innerHTML = `${edgeItem.name} +${edgePrice.toLocaleString('ru-RU')} ₽`;
+        }
+        
         btn.onclick = () => {
+            if (isPriceMissing) {
+                alert('Цена на финишный борт для выбранного диаметра уточняется у менеджера');
+                return;
+            }
             if(selected.has(edgeItem.id)) selected.delete(edgeItem.id);
             else selected.add(edgeItem.id);
             renderEdge('circle'); 
@@ -1120,6 +1205,9 @@
                 const state = selectedState.circle;
                 state.diameter = diameter;
                 updateVolume(shapeType);
+                // Обновляем кнопки опций при изменении диаметра
+                renderEmbed('circle');
+                renderEdge('circle');
             }
             
             if(diameterSelect) diameterSelect.addEventListener('change', updateCircleSize);
