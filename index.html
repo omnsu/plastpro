@@ -1028,7 +1028,6 @@
             selectedEmbed = Array.from(state.embed).map(id => {
                 let price;
                 if (id === 'embed_2') {
-                    // Для 2 шт - умножаем цену 1 шт на 2
                     const basePrice = getOptionPrice(shapeType, 'embed_1', state.diameter);
                     price = basePrice * 2;
                 } else {
@@ -1086,7 +1085,7 @@
             if(row.category !== lastCat && row.category) { 
                 rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
                                 <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                              </tr>`;
+                              </td>`;
                 lastCat = row.category; 
             }
             
@@ -1119,7 +1118,7 @@
                             <td colspan="4" style="padding:12px 8px; text-align:center; font-weight:800; font-size:0.95rem; color:#e65100;">
                                 ⚠️ Для выбранного размера цена уточняется у менеджера
                              </td>
-                          <tr>`;
+                          </tr>`;
         }
         
         container.innerHTML = `
@@ -1251,7 +1250,7 @@
                     <div class="stairs-name">${stair.name}</div>
                     <div class="stairs-desc">${stair.description}</div>
                     <div class="stairs-install">${stair.installType}</div>
-                    <div class="stairs-price">${isAvailable && price > 0 ? '+' + price.toLocaleString('ru-RU') + ' ₽' : 'цену уточняйте'}</div>
+                    <div class="stairs-price">${isAvailable && price > 0 ? price.toLocaleString('ru-RU') + ' ₽' : 'цену уточняйте'}</div>
                 </div>
             `;
             
@@ -1296,7 +1295,7 @@
             const btn = document.createElement('div'); 
             btn.className = 'price-btn';
             if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} +${opt.price.toLocaleString('ru-RU')} ₽`;
+            btn.innerHTML = `${opt.name} ${opt.price.toLocaleString('ru-RU')} ₽`;
             if(opt.id === 'mount3' && vol > 20) btn.innerHTML += ` <span style="font-size:0.65rem;">${vol > 30 ? '+8000 за объем' : '+4000 за объем'}</span>`;
             btn.onclick = () => { 
                 if(selected.has(opt.id)) selected.delete(opt.id); 
@@ -1326,7 +1325,6 @@
             
             if (shapeType === 'circle' && currentDiameter) {
                 if (opt.id === 'embed_2') {
-                    // Для 2 шт - умножаем цену 1 шт на 2
                     const basePrice = getOptionPrice(shapeType, 'embed_1', currentDiameter);
                     price = basePrice * 2;
                     displayPrice = price;
@@ -1344,9 +1342,9 @@
             
             if (displayPrice > 0) {
                 if (isDouble && opt.id === 'embed_2') {
-                    btn.innerHTML = `${opt.name} +${displayPrice.toLocaleString('ru-RU')} ₽ (2 × ${(price/2).toLocaleString('ru-RU')} ₽)`;
+                    btn.innerHTML = `${opt.name} ${displayPrice.toLocaleString('ru-RU')} ₽ (2 × ${(price/2).toLocaleString('ru-RU')} ₽)`;
                 } else {
-                    btn.innerHTML = `${opt.name} +${displayPrice.toLocaleString('ru-RU')} ₽`;
+                    btn.innerHTML = `${opt.name} ${displayPrice.toLocaleString('ru-RU')} ₽`;
                 }
             } else {
                 btn.innerHTML = `${opt.name} (цену уточняйте)`;
@@ -1360,7 +1358,6 @@
                 }
                 if(selected.has(opt.id)) selected.delete(opt.id);
                 else { 
-                    // Очищаем другие закладные (чтобы нельзя было выбрать и 1 и 2 шт одновременно)
                     selected.clear(); 
                     selected.add(opt.id); 
                 }
@@ -1380,7 +1377,7 @@
         const btn = document.createElement('div'); 
         btn.className = 'price-btn';
         if(selected.has(radiusItem.id)) btn.classList.add('selected');
-        btn.innerHTML = `${radiusItem.name} +${getOptionPrice('rect', 'radius_corners').toLocaleString('ru-RU')} ₽`;
+        btn.innerHTML = `${radiusItem.name} ${getOptionPrice('rect', 'radius_corners').toLocaleString('ru-RU')} ₽`;
         btn.onclick = () => { 
             if(selected.has(radiusItem.id)) selected.delete(radiusItem.id);
             else selected.add(radiusItem.id);
@@ -1399,7 +1396,7 @@
             const btn = document.createElement('div'); 
             btn.className = 'price-btn';
             if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} +${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
+            btn.innerHTML = `${opt.name} ${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
             btn.onclick = () => { 
                 if(selected.has(opt.id)) selected.delete(opt.id);
                 else { selected.clear(); selected.add(opt.id); } 
@@ -1429,7 +1426,7 @@
             btn.innerHTML = `${edgeItem.name} (цену уточняйте)`;
             btn.style.opacity = '0.7';
         } else {
-            btn.innerHTML = `${edgeItem.name} +${edgePrice.toLocaleString('ru-RU')} ₽`;
+            btn.innerHTML = `${edgeItem.name} ${edgePrice.toLocaleString('ru-RU')} ₽`;
         }
         
         btn.onclick = () => {
@@ -1453,7 +1450,7 @@
             const btn = document.createElement('div'); 
             btn.className = 'price-btn';
             if(selectedState[shapeType][cat].has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} +${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
+            btn.innerHTML = `${opt.name} ${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
             btn.onclick = () => { 
                 const set = selectedState[shapeType][cat]; 
                 if(set.has(opt.id)) set.delete(opt.id); 
