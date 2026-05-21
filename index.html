@@ -1026,7 +1026,14 @@
         let selectedEmbed = [];
         if (shapeType === 'circle') {
             selectedEmbed = Array.from(state.embed).map(id => {
-                const price = getOptionPrice(shapeType, id, state.diameter);
+                let price;
+                if (id === 'embed_2') {
+                    // Для 2 шт - умножаем цену 1 шт на 2
+                    const basePrice = getOptionPrice(shapeType, 'embed_1', state.diameter);
+                    price = basePrice * 2;
+                } else {
+                    price = getOptionPrice(shapeType, id, state.diameter);
+                }
                 const item = embedItems.find(i => i.id === id);
                 return { ...item, price: price > 0 ? price : 0 };
             }).filter(i => i && i.price > 0);
@@ -1106,13 +1113,13 @@
             rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
                             <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
                             <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
-                          <tr>`;
+                          </tr>`;
         } else {
             rowsHtml += `<tr style="background:#fff3e0; border-top:2px solid #ff9800;">
                             <td colspan="4" style="padding:12px 8px; text-align:center; font-weight:800; font-size:0.95rem; color:#e65100;">
                                 ⚠️ Для выбранного размера цена уточняется у менеджера
                              </td>
-                          </tr>`;
+                          <tr>`;
         }
         
         container.innerHTML = `
@@ -1153,7 +1160,13 @@
         
         if (shapeType === 'circle') {
             for(let id of state.embed) {
-                const price = getOptionPrice(shapeType, id, state.diameter);
+                let price;
+                if (id === 'embed_2') {
+                    const basePrice = getOptionPrice(shapeType, 'embed_1', state.diameter);
+                    price = basePrice * 2;
+                } else {
+                    price = getOptionPrice(shapeType, id, state.diameter);
+                }
                 if (price > 0) extra += price;
             }
             if (state.edge.has(edgeItem.id)) {
@@ -1308,28 +1321,49 @@
             btn.className = 'price-btn';
             
             let price;
+            let displayPrice;
+            let isDouble = false;
+            
             if (shapeType === 'circle' && currentDiameter) {
-                price = getOptionPrice(shapeType, opt.id, currentDiameter);
+                if (opt.id === 'embed_2') {
+                    // Для 2 шт - умножаем цену 1 шт на 2
+                    const basePrice = getOptionPrice(shapeType, 'embed_1', currentDiameter);
+                    price = basePrice * 2;
+                    displayPrice = price;
+                    isDouble = true;
+                } else {
+                    price = getOptionPrice(shapeType, opt.id, currentDiameter);
+                    displayPrice = price;
+                }
             } else {
                 price = getOptionPrice(shapeType, opt.id);
+                displayPrice = price;
             }
             
             if(selected.has(opt.id)) btn.classList.add('selected');
             
-            if (price > 0) {
-                btn.innerHTML = `${opt.name} +${price.toLocaleString('ru-RU')} ₽`;
+            if (displayPrice > 0) {
+                if (isDouble && opt.id === 'embed_2') {
+                    btn.innerHTML = `${opt.name} +${displayPrice.toLocaleString('ru-RU')} ₽ (2 × ${(price/2).toLocaleString('ru-RU')} ₽)`;
+                } else {
+                    btn.innerHTML = `${opt.name} +${displayPrice.toLocaleString('ru-RU')} ₽`;
+                }
             } else {
                 btn.innerHTML = `${opt.name} (цену уточняйте)`;
                 btn.style.opacity = '0.7';
             }
             
             btn.onclick = () => {
-                if (price === 0) {
+                if (displayPrice === 0) {
                     alert('Цена на данную опцию для выбранного размера уточняется у менеджера');
                     return;
                 }
                 if(selected.has(opt.id)) selected.delete(opt.id);
-                else { selected.clear(); selected.add(opt.id); }
+                else { 
+                    // Очищаем другие закладные (чтобы нельзя было выбрать и 1 и 2 шт одновременно)
+                    selected.clear(); 
+                    selected.add(opt.id); 
+                }
                 renderEmbed(shapeType);
                 updateTotalAndSpec(shapeType);
             };
