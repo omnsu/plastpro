@@ -764,8 +764,8 @@
     // ---------- ОПИСАНИЕ ТОВАРОВ ----------
     const mountItems = [
         { name: "Песчаная подушка + геотекстиль", qty: 1, id: "mount1", category: "Монтаж чаши" },
-        { name: "Утеплитель экструдированный", qty: 1, id: "mount2", category: "Монтаж чаши" },
-        { name: "Армирующая стяжка", qty: 1, id: "mount3", dynamic: true, category: "Монтаж чаши" },
+        { name: "Утеплитель", qty: 1, id: "mount2", category: "Монтаж чаши" },
+        { name: "Армирование", qty: 1, id: "mount3", category: "Монтаж чаши" },
         { name: "Гидроизоляция жидкая", qty: 1, id: "mount4", category: "Монтаж чаши" }
     ];
     
@@ -790,9 +790,18 @@
     const edgeItem = { name: "Финишный борт (декоративный)", qty: 1, id: "edge_finish", category: "Финишный борт" };
     
     // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ЦЕНАМИ ==========
-    function getOptionPrice(shapeType, id, diameter = null) {
+    function getOptionPrice(shapeType, id, diameter = null, sizeKey = null) {
+        // Для круглого бассейна с диаметром
         if (shapeType === 'circle' && diameter !== null) {
             const key = `${id}_d${diameter}`;
+            if (optionPrices[shapeType][key] !== undefined && optionPrices[shapeType][key] > 0) {
+                return optionPrices[shapeType][key];
+            }
+            return 0;
+        }
+        // Для прямоугольного бассейна с sizeKey (например "3x2")
+        if (shapeType === 'rect' && sizeKey !== null && (id === 'mount2' || id === 'mount3')) {
+            const key = `${id}_${sizeKey}`;
             if (optionPrices[shapeType][key] !== undefined && optionPrices[shapeType][key] > 0) {
                 return optionPrices[shapeType][key];
             }
@@ -817,19 +826,17 @@
         return 0;
     }
     
-    function getDynamicStairsPrice(shapeType, vol) {
-        let basePrice = getOptionPrice(shapeType, 'mount3');
-        if(basePrice === 0) basePrice = 9400;
-        if(vol > 30) return basePrice + 8000;
-        if(vol > 20) return basePrice + 4000;
-        return basePrice;
-    }
-    
     function getMountItemsWithPrices(shapeType, vol) {
+        const state = selectedState[shapeType];
+        const sizeKey = (shapeType === 'rect') ? `${state.length}x${state.width}` : null;
+        
         return mountItems.map(item => {
-            let price = getOptionPrice(shapeType, item.id);
-            if(item.id === 'mount3' && vol > 0) {
-                price = getDynamicStairsPrice(shapeType, vol);
+            let price = 0;
+            if (shapeType === 'rect' && (item.id === 'mount2' || item.id === 'mount3')) {
+                // Для утеплителя и армирования берём цену из таблицы с привязкой к размеру
+                price = getOptionPrice(shapeType, item.id, null, sizeKey);
+            } else {
+                price = getOptionPrice(shapeType, item.id);
             }
             return { ...item, price: price };
         });
@@ -863,6 +870,7 @@
                     let price = parseInt(match[3].replace(/[",]/g, '').trim());
                     
                     if (!isNaN(price) && price >= 0) {
+                        // Для чаши бассейна
                         if (type === 'pool_circle') {
                             if (priceMatrix.circle) {
                                 priceMatrix.circle[sizeKey] = price;
@@ -881,12 +889,15 @@
                                 loadedCount++;
                             }
                         }
+                        // Для опций (утеплитель, армирование, финишный борт, закладные, лестницы)
                         else if (shape === 'rect' || shape === 'circle' || shape === 'oval') {
                             const optionKey = `${type}_${sizeKey}`;
                             if (!optionPrices[shape][optionKey]) {
                                 optionPrices[shape][optionKey] = price;
                                 loadedCount++;
+                                console.log(`✅ Загружена опция: ${shape} ${optionKey} = ${price}`);
                             }
+                            // Также сохраняем просто по типу для обратной совместимости
                             if (!optionPrices[shape][type]) {
                                 optionPrices[shape][type] = price;
                             }
@@ -895,6 +906,7 @@
                 }
             }
             console.log(`✅ Загружено ${loadedCount} цен из Google Sheets`);
+            console.log('💰 Цены опций для прямоугольных:', optionPrices.rect);
             return true;
         } catch (error) {
             console.error('❌ Ошибка загрузки:', error);
@@ -1000,7 +1012,7 @@
         const isPriceMissing = (basePrice === -1);
         const displayPrice = isPriceMissing ? 0 : basePrice;
         
-        const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i);
+        const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i && i.price > 0);
         const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
         
@@ -1131,7 +1143,7 @@
                             <th style="padding:12px 8px; text-align:center; font-weight:700; color:#1a5d83; width:70px;">Кол-во</th>
                             <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:110px;">Цена ед., ₽</th>
                             <th style="padding:12px 8px; text-align:right; font-weight:700; color:#1a5d83; width:120px;">Сумма, ₽</th>
-                        </tr>
+                        </td>
                     </thead>
                     <tbody>${rowsHtml}</tbody>
                 </table>
@@ -1295,9 +1307,17 @@
             const btn = document.createElement('div'); 
             btn.className = 'price-btn';
             if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} ${opt.price.toLocaleString('ru-RU')} ₽`;
-            if(opt.id === 'mount3' && vol > 20) btn.innerHTML += ` <span style="font-size:0.65rem;">${vol > 30 ? '+8000 за объем' : '+4000 за объем'}</span>`;
+            if (opt.price > 0) {
+                btn.innerHTML = `${opt.name} ${opt.price.toLocaleString('ru-RU')} ₽`;
+            } else {
+                btn.innerHTML = `${opt.name} (цену уточняйте)`;
+                btn.style.opacity = '0.7';
+            }
             btn.onclick = () => { 
+                if (opt.price === 0) {
+                    alert('Цена на данную опцию для выбранного размера уточняется у менеджера');
+                    return;
+                }
                 if(selected.has(opt.id)) selected.delete(opt.id); 
                 else selected.add(opt.id); 
                 reRenderMount(shapeType); 
@@ -1531,6 +1551,7 @@
                 state.width = width;
                 updateVolume(shapeType);
                 renderStairs('rect');
+                reRenderMount('rect'); // Обновляем монтаж при изменении размера
             }
             
             lengthSelect.addEventListener('change', updateRectSize);
