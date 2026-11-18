@@ -249,6 +249,11 @@
         .price-btn.selected { background: #2c7cb6; border-color: #0e4b75; color: white; }
         .price-btn:hover { background: #e5f0fa; transform: translateY(-2px); }
         
+        /* Кнопка скачивания спецификации */
+        .spec-download-btn { background: #2c7cb6; color: white; border: none; border-radius: 30px; padding: 11px 24px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .spec-download-btn:hover:not(:disabled) { background: #1b668f; }
+        .spec-download-btn:disabled { opacity: 0.6; cursor: default; }
+        
         /* Счётчик прожекторов */
         .light-counter { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; background: #f9fdfe; border: 1px solid #cde0f0; border-radius: 20px; padding: 10px 18px; }
         .light-info { display: flex; flex-direction: column; gap: 2px; color: #1b668f; font-size: 0.85rem; }
@@ -771,24 +776,7 @@
         { name: "Армирование", qty: 1, id: "mount3", category: "Дополнительные услуги" }
     ];
     
-    // Освещение: счётчик прожекторов. Цены берутся из таблицы (light_first, light_next),
-    // если в таблице их нет - используются значения по умолчанию.
-    const LIGHT_DEFAULTS = { first: 25800, next: 18000 };
-    const LIGHT_MAX = 20;
-    function getLightPrices(shapeType) {
-        const first = getOptionPrice(shapeType, 'light_first');
-        const next = getOptionPrice(shapeType, 'light_next');
-        return {
-            first: first > 0 ? first : LIGHT_DEFAULTS.first,
-            next: next > 0 ? next : LIGHT_DEFAULTS.next
-        };
-    }
-    function getLightTotal(shapeType) {
-        const n = selectedState[shapeType].lightCount;
-        if (!n || n < 1) return 0;
-        const p = getLightPrices(shapeType);
-        return p.first + (n - 1) * p.next;
-    }
+    const LIGHT_MAX = 20;  // максимум прожекторов в счётчике
     
     // ========== ФИЛЬТРАЦИЯ ==========
     // Фильтровальная установка: цена по размеру бассейна (строки filter_unit; для овального берутся строки rect).
@@ -796,11 +784,29 @@
     // Если строк в таблице нет - используются значения по умолчанию.
     const filterItems = [
         { name: "Фильтровальная установка (бочка + насос)", qty: 1, id: "filter_unit", category: "Фильтрация" },
-        { name: "Скиммер 1 шт, форсунки 2 шт с установкой", qty: 1, id: "filter_set", category: "Фильтрация" }
+        { name: "Скиммер 1 шт, форсунки 2 шт с установкой", qty: 1, id: "filter_set", category: "Фильтрация" },
+        { name: "Трубы и фитинги", qty: 1, id: "pipes", category: "Трубы и фитинги" }
     ];
-    const FILTER_DEFAULTS = { skimmer: 6900, nozzle: 2150, install: 2500 };
-    const FILTER_NOZZLES = 2;        // форсунок в комплекте
-    const FILTER_INSTALL_PARTS = 3;  // деталей к установке: 1 скиммер + 2 форсунки
+    // Цены оборудования (из таблицы, shape = all). Если строки в таблице нет - берётся значение по умолчанию.
+    const EQ_DEFAULTS = {
+        filter_sand: 1250, filter_skimmer: 6900, filter_nozzle: 2150, filter_install: 2500,
+        heat_exch_40: 28500, heat_exch_75: 37250, heat_exch_120: 47500,
+        heat_thermostat: 6700, heat_valve: 5400, heat_plug: 350, heat_circ_pump: 4500, heat_coupling: 3300, heat_coupling_kit: 2700,
+        heat_pump_9: 128000, heat_pump_12: 148000,
+        light_projector: 13500, light_remote: 2150, light_transformer: 5700, light_adapter: 950, light_install: 3500,
+        pipe_pvc: 330, pipe_ball_valve: 1250, pipe_coupling: 390, pipe_nipple: 110, pipe_elbow45: 130,
+        pipe_elbow90: 125, pipe_tee: 190, pipe_check_valve: 1250, pipe_holder: 35, pipe_glue: 1250
+    };
+    function eqPrice(shapeType, key) {
+        const t = getOptionPrice(shapeType, key);
+        return t > 0 ? t : EQ_DEFAULTS[key];
+    }
+    function eqLine(shapeType, name, key, qty, unit) {
+        return { name: name, qty: qty, unit: unit, unitPrice: eqPrice(shapeType, key) };
+    }
+    function linesSum(lines) {
+        return lines.reduce((sum, l) => sum + l.qty * l.unitPrice, 0);
+    }
     
     function getSizeKey(shapeType) {
         const st = selectedState[shapeType];
@@ -830,11 +836,9 @@
     }
     // ========== ПОДОГРЕВ ВОДЫ ==========
     // Мощность зависит от объёма бассейна (глубина всегда 1.5 м). Границы: 5x3x1.5 = 22.5 м3 и 7x3x1.5 = 31.5 м3.
-    // Цены берутся из таблицы (строки heat_exchanger_40/75/120, heat_pump_9/12; shape = all),
-    // если строк нет - используются значения по умолчанию.
+    // Теплообменник выводится комплектом (сам теплообменник по мощности + обвязка), тепловой насос одной строкой.
     const HEAT_VOL_1 = 22.5;
     const HEAT_VOL_2 = 31.5;
-    const HEAT_DEFAULTS = { heat_exchanger_40: 57250, heat_exchanger_75: 66000, heat_exchanger_120: 73750, heat_pump_9: 128000, heat_pump_12: 148000 };
     const heatItems = [
         { id: "heat_exchanger", qty: 1, category: "Подогрев воды" },
         { id: "heat_pump", qty: 1, category: "Подогрев воды" }
@@ -847,32 +851,76 @@
     function getHeatItem(shapeType, id) {
         const vol = getPoolVolume(shapeType);
         const EPS = 1e-6;
-        let key, name;
+        let name, lines;
         if (id === 'heat_exchanger') {
-            if (vol < HEAT_VOL_1 - EPS) { key = 'heat_exchanger_40'; name = 'Теплообменник 40 кВт'; }
-            else if (vol < HEAT_VOL_2 - EPS) { key = 'heat_exchanger_75'; name = 'Теплообменник 75 кВт'; }
-            else { key = 'heat_exchanger_120'; name = 'Теплообменник 120 кВт'; }
+            const kw = vol < HEAT_VOL_1 - EPS ? 40 : (vol < HEAT_VOL_2 - EPS ? 75 : 120);
+            name = `Теплообменник ${kw} кВт`;
+            lines = [
+                eqLine(shapeType, `Теплообменник нерж. сталь ${kw} кВт`, `heat_exch_${kw}`, 1, 'шт.'),
+                eqLine(shapeType, 'Термостат цифровой', 'heat_thermostat', 1, 'шт.'),
+                eqLine(shapeType, 'Электромагнитный клапан из латуни Н.З. 3/4" 220 В', 'heat_valve', 1, 'шт.'),
+                eqLine(shapeType, 'Заглушка клеевая д.50', 'heat_plug', 1, 'шт.'),
+                eqLine(shapeType, 'Циркуляционный насос', 'heat_circ_pump', 1, 'шт.'),
+                eqLine(shapeType, 'Кран шаровый под вклейку д.50 (разъемный с двух сторон)', 'pipe_ball_valve', 2, 'шт.'),
+                eqLine(shapeType, 'Муфта разъемная д.50 с вставкой из нерж. стали 1 1/2 для теплообменника', 'heat_coupling', 2, 'шт.'),
+                eqLine(shapeType, 'Комплект стальных муфт переходных для подключения циркуляционного насоса и эл. клапана (5 шт), кран 3/4', 'heat_coupling_kit', 1, 'шт.')
+            ];
         } else {
-            if (vol <= HEAT_VOL_1 + EPS) { key = 'heat_pump_9'; name = 'Тепловой насос (электрический) 9 кВт'; }
-            else { key = 'heat_pump_12'; name = 'Тепловой насос (электрический) 12 кВт'; }
+            const kw = vol <= HEAT_VOL_1 + EPS ? 9 : 12;
+            name = `Тепловой насос (электрический) ${kw} кВт`;
+            lines = [ eqLine(shapeType, name, `heat_pump_${kw}`, 1, 'шт.') ];
         }
-        const t = getOptionPrice(shapeType, key);
-        return { id: id, name: name, qty: 1, category: "Подогрев воды", price: t > 0 ? t : HEAT_DEFAULTS[key] };
+        return { id: id, name: name, lines: lines, price: linesSum(lines) };
     }
     
-    function getFilterPrice(shapeType, id) {
+    function getLightLines(shapeType) {
+        const n = selectedState[shapeType].lightCount || 0;
+        if (n < 1) return [];
+        return [
+            eqLine(shapeType, 'Прожектор светодиодный универсальный с оправой из нерж. стали, белый', 'light_projector', n, 'шт.'),
+            eqLine(shapeType, 'Пульт ДУ для прожектора', 'light_remote', 1, 'шт.'),
+            eqLine(shapeType, 'Трансформатор 220/12В', 'light_transformer', 1, 'шт.'),
+            eqLine(shapeType, 'Переходник для герметизации кабеля для светильников', 'light_adapter', 1, 'шт.'),
+            eqLine(shapeType, 'Установка прожектора', 'light_install', n, 'шт.')
+        ];
+    }
+    function getLightTotal(shapeType) {
+        return linesSum(getLightLines(shapeType));
+    }
+    
+    function getFilterLines(shapeType, id) {
         if (id === 'filter_unit') {
             const t = getSizedOptionPrice(shapeType, 'filter_unit');
-            return t > 0 ? t : getFilterUnitDefault(shapeType);
+            return [
+                { name: 'Фильтровальная установка (бочка + насос)', qty: 1, unit: 'шт.', unitPrice: t > 0 ? t : getFilterUnitDefault(shapeType) },
+                eqLine(shapeType, 'Кварцевый песок, мешок 25 кг, фракция 0,5-1,0 мм', 'filter_sand', 3, 'меш.')
+            ];
         }
         if (id === 'filter_set') {
-            // скиммер, форсунка и установка - одна цена для всех размеров (строки filter_skimmer/nozzle/install, shape = all)
-            const sk = getOptionPrice(shapeType, 'filter_skimmer') || FILTER_DEFAULTS.skimmer;
-            const nz = getOptionPrice(shapeType, 'filter_nozzle') || FILTER_DEFAULTS.nozzle;
-            const ins = getOptionPrice(shapeType, 'filter_install') || FILTER_DEFAULTS.install;
-            return sk + FILTER_NOZZLES * nz + FILTER_INSTALL_PARTS * ins;
+            return [
+                eqLine(shapeType, 'Скиммер универсальный из ABS-пластика Emaux', 'filter_skimmer', 1, 'шт.'),
+                eqLine(shapeType, 'Форсунка универсальная стеновая Aquaviva', 'filter_nozzle', 2, 'шт.'),
+                eqLine(shapeType, 'Установка закладной детали', 'filter_install', 3, 'шт.')
+            ];
         }
-        return 0;
+        if (id === 'pipes') {
+            return [
+                eqLine(shapeType, 'Труба ПВХ д.50', 'pipe_pvc', 18, 'м.п.'),
+                eqLine(shapeType, 'Кран шаровый под вклейку д.50 (разъемный с двух сторон)', 'pipe_ball_valve', 2, 'шт.'),
+                eqLine(shapeType, 'Муфта разборная клей-резьба наруж. д.50х1 1/2"', 'pipe_coupling', 3, 'шт.'),
+                eqLine(shapeType, 'Ниппель клей-резьба д.50х1 1/2"', 'pipe_nipple', 6, 'шт.'),
+                eqLine(shapeType, 'Угол 45 град. клей-клей д.50', 'pipe_elbow45', 10, 'шт.'),
+                eqLine(shapeType, 'Угол 90 град. клей-клей д.50', 'pipe_elbow90', 20, 'шт.'),
+                eqLine(shapeType, 'Тройник 90 град. клей-клей д.50', 'pipe_tee', 5, 'шт.'),
+                eqLine(shapeType, 'Обратный клапан', 'pipe_check_valve', 1, 'шт.'),
+                eqLine(shapeType, 'Трубный держатель открытый д.50', 'pipe_holder', 10, 'шт.'),
+                eqLine(shapeType, 'Клей для ПВХ Bailey', 'pipe_glue', 1, 'шт.')
+            ];
+        }
+        return [];
+    }
+    function getFilterPrice(shapeType, id) {
+        return linesSum(getFilterLines(shapeType, id));
     }
     
     const embedItems = [
@@ -1134,7 +1182,7 @@
         const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i && i.price > 0);
         const lightCount = state.lightCount || 0;
         const selectedHeat = Array.from(state.heat).map(id => getHeatItem(shapeType, id));
-        const selectedEquip = Array.from(state.equip).map(id => ({ ...filterItems.find(i => i.id === id), price: getFilterPrice(shapeType, id) })).filter(i => i && i.price);
+        const selectedEquip = filterItems.filter(i => state.equip.has(i.id)).map(i => ({ ...i, price: getFilterPrice(shapeType, i.id) })).filter(i => i.price);
         
         // Получаем выбранные лестницы с ценами
         const selectedStairs = [];
@@ -1181,8 +1229,9 @@
         }
         
         const addItem = (item, cat, price) => { 
-            rows.push({category: cat, name: item.name, price: price, qty: item.qty || 1, sum: price, unitText: item.unitText});
+            rows.push({category: cat, name: item.name, price: price, qty: item.qty || 1, sum: price, unitText: item.unitText, unit: item.unit});
         };
+        const addLines = (lines, cat) => lines.forEach(l => addItem({ name: l.name, qty: l.qty, unit: l.unit }, cat, l.qty * l.unitPrice));
         
         if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА", item.price));
         if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ", item.price));
@@ -1198,11 +1247,9 @@
         }
         
         if(selectedMount.length) selectedMount.forEach(item => addItem(item, "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ", item.price));
-        if(lightCount > 0) {
-            addItem({ name: "Прожектор", qty: lightCount, unitText: "—" }, "ОСВЕЩЕНИЕ", getLightTotal(shapeType));
-        }
-        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ФИЛЬТРАЦИЯ", item.price));
-        if(selectedHeat.length) selectedHeat.forEach(item => addItem(item, "ПОДОГРЕВ ВОДЫ", item.price));
+        if(lightCount > 0) addLines(getLightLines(shapeType), "ОСВЕЩЕНИЕ");
+        if(selectedEquip.length) selectedEquip.forEach(item => addLines(getFilterLines(shapeType, item.id), item.id === "pipes" ? "ТРУБЫ И ФИТИНГИ" : "ФИЛЬТРАЦИЯ"));
+        if(selectedHeat.length) selectedHeat.forEach(item => addLines(item.lines, "ПОДОГРЕВ ВОДЫ"));
         
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
@@ -1216,18 +1263,26 @@
         let lastCat = "";
         let totalSum = 0;
         
+        const catSums = {}, catCounts = {};
+        rows.forEach(r => {
+            catCounts[r.category] = (catCounts[r.category] || 0) + 1;
+            if(r.priceText !== "цену уточняйте") catSums[r.category] = (catSums[r.category] || 0) + r.sum;
+        });
+        
         rows.forEach(row => {
             if(row.category !== lastCat && row.category) { 
+                const catSumText = catCounts[row.category] > 1 ? `${(catSums[row.category] || 0).toLocaleString('ru-RU')} ₽` : '';
                 rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
-                                <td colspan="4" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                              </td>`;
+                                <td colspan="3" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
+                                <td style="padding:10px 8px; text-align:right; font-weight:800; color:#0a4c73; font-size:0.9rem;">${catSumText}</td>
+                              </tr>`;
                 lastCat = row.category; 
             }
             
             if(row.priceText === "цену уточняйте") {
                 rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
                                 <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
+                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
                                 <td style="padding:10px 8px; text-align:right; width:110px; color:#e65100; font-weight:600;">цену уточняйте</td>
                                 <td style="padding:10px 8px; text-align:right; width:120px; color:#e65100; font-weight:600;">—</td>
                               </tr>`;
@@ -1235,7 +1290,7 @@
                 const pricePerUnit = Math.round(row.price / (row.qty || 1));
                 rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
                                 <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
+                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
                                 <td style="padding:10px 8px; text-align:right; width:110px;">${row.unitText ? row.unitText : pricePerUnit.toLocaleString('ru-RU')}</td>
                                 <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
                               </tr>`;
@@ -1256,6 +1311,8 @@
                           </tr>`;
         }
         
+        lastSpec[shapeType] = { rows: rows, isPriceMissing: isPriceMissing, totalSum: totalSum, sizeText: sizeText };
+        
         container.innerHTML = `
             <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Спецификация для заказа (скриншот для менеджера)</h4>
             <div style="overflow-x:auto;">
@@ -1271,7 +1328,182 @@
                     <tbody>${rowsHtml}</tbody>
                 </table>
             </div>
+            <div style="margin-top:14px; text-align:right;">
+                <button type="button" class="spec-download-btn">⬇️ Скачать спецификацию в Excel</button>
+            </div>
         `;
+        const dlBtn = container.querySelector('.spec-download-btn');
+        if(dlBtn) dlBtn.onclick = () => downloadSpecExcel(shapeType);
+    }
+    
+    // ========== ВЫГРУЗКА СПЕЦИФИКАЦИИ В EXCEL ==========
+    const lastSpec = {};
+    const SHAPE_NAMES = { rect: 'прямоугольный', circle: 'круглый', oval: 'овальный' };
+    
+    function loadExcelJS() {
+        return new Promise((resolve, reject) => {
+            if (window.ExcelJS) return resolve(window.ExcelJS);
+            const sc = document.createElement('script');
+            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+            sc.onload = () => window.ExcelJS ? resolve(window.ExcelJS) : reject(new Error('ExcelJS не найден'));
+            sc.onerror = () => reject(new Error('Не удалось загрузить библиотеку Excel'));
+            document.head.appendChild(sc);
+        });
+    }
+    
+    function specFileName(shapeType) {
+        const st = selectedState[shapeType];
+        const size = shapeType === 'circle' ? `d${st.diameter}` : `${st.length}x${st.width}`;
+        return `Спецификация_${SHAPE_NAMES[shapeType]}_${size}`;
+    }
+    
+    function saveBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = fileName;
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+    
+    // Запасной вариант, если библиотека Excel не загрузилась: CSV, который открывается в Excel
+    function downloadSpecCsv(shapeType, spec) {
+        const esc = v => `"${String(v).replace(/"/g, '""')}"`;
+        const lines = [['Наименование', 'Цена, руб.', 'К-во', 'Сумма, руб.', 'Ед. изм.'].map(esc).join(';')];
+        let cat = '';
+        spec.rows.forEach(r => {
+            if (r.category !== cat) { cat = r.category; lines.push(esc(cat)); }
+            const missing = r.priceText === 'цену уточняйте';
+            lines.push([r.name, missing ? 'цену уточняйте' : Math.round(r.price / (r.qty || 1)), r.qty, missing ? '' : r.sum, r.unit || 'шт.'].map(esc).join(';'));
+        });
+        if (!spec.isPriceMissing) lines.push(['ИТОГО', '', '', spec.totalSum, ''].map(esc).join(';'));
+        saveBlob(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), specFileName(shapeType) + '.csv');
+    }
+    
+    async function downloadSpecExcel(shapeType) {
+        const spec = lastSpec[shapeType];
+        if (!spec) return;
+        const btn = document.querySelector(`#${shapeType}SpecTable .spec-download-btn`);
+        if (btn) { btn.disabled = true; btn.textContent = 'Готовим файл...'; }
+        try {
+            const ExcelJS = await loadExcelJS();
+            const wb = new ExcelJS.Workbook();
+            const ws = wb.addWorksheet('Спецификация', { pageSetup: { orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
+            ws.columns = [{ width: 5 }, { width: 72 }, { width: 13 }, { width: 9 }, { width: 15 }, { width: 9 }, { width: 18 }];
+            const FONT = 'Arial';
+            const thin = { style: 'thin', color: { argb: 'FF999999' } };
+            const border = { top: thin, left: thin, bottom: thin, right: thin };
+            const st = selectedState[shapeType];
+            const vol = st.currentVolume || 0;
+            
+            ws.mergeCells('A1:G1');
+            ws.getCell('A1').value = `Спецификация для заказа: бассейн ${SHAPE_NAMES[shapeType]} ${spec.sizeText}`;
+            ws.getCell('A1').font = { name: FONT, size: 14, bold: true, color: { argb: 'FF1F4E78' } };
+            ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
+            ws.getRow(1).height = 26;
+            ws.mergeCells('A2:G2');
+            ws.getCell('A2').value = `Объём: ${vol.toFixed(2)} м³   |   Дата расчёта: ${new Date().toLocaleDateString('ru-RU')}`;
+            ws.getCell('A2').font = { name: FONT, size: 10, italic: true, color: { argb: 'FF595959' } };
+            ws.getCell('A2').alignment = { horizontal: 'center' };
+            
+            const headRow = ws.getRow(4);
+            ['№', 'Наименование', 'Цена, руб.', 'К-во', 'Сумма, руб.', 'Ед.изм.', 'Сумма по разделам'].forEach((h, i) => {
+                const c = headRow.getCell(i + 1);
+                c.value = h;
+                c.font = { name: FONT, size: 10, bold: true };
+                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
+                c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+                c.border = border;
+            });
+            headRow.height = 30;
+            
+            // группировка по разделам в порядке появления
+            const groups = [];
+            spec.rows.forEach(r => {
+                let g = groups.find(x => x.name === r.category);
+                if (!g) { g = { name: r.category, rows: [] }; groups.push(g); }
+                g.rows.push(r);
+            });
+            
+            let rowNum = 5;
+            const sectionRows = [];
+            groups.forEach(g => {
+                const secRow = rowNum++;
+                sectionRows.push(secRow);
+                ws.mergeCells(`A${secRow}:F${secRow}`);
+                const sc = ws.getCell(`A${secRow}`);
+                sc.value = g.name;
+                sc.font = { name: FONT, size: 11, bold: true };
+                sc.alignment = { horizontal: 'center', vertical: 'middle' };
+                sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
+                ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => { ws.getCell(`${col}${secRow}`).border = border; });
+                
+                const first = rowNum;
+                let secSum = 0;
+                g.rows.forEach((r, idx) => {
+                    const missing = r.priceText === 'цену уточняйте';
+                    const unitPrice = Math.round(r.price / (r.qty || 1));
+                    const row = ws.getRow(rowNum);
+                    row.getCell(1).value = idx + 1;
+                    row.getCell(2).value = r.name;
+                    if (missing) {
+                        row.getCell(3).value = 'цену уточняйте';
+                        row.getCell(5).value = '—';
+                    } else {
+                        row.getCell(3).value = unitPrice;
+                        row.getCell(5).value = { formula: `C${rowNum}*D${rowNum}`, result: r.sum };
+                        secSum += r.sum;
+                    }
+                    row.getCell(4).value = r.qty;
+                    row.getCell(6).value = r.unit || 'шт.';
+                    for (let c = 1; c <= 7; c++) {
+                        const cell = row.getCell(c);
+                        cell.font = { name: FONT, size: 10, color: missing && (c === 3 || c === 5) ? { argb: 'FFE65100' } : undefined };
+                        cell.border = border;
+                        cell.alignment = { vertical: 'middle', wrapText: c === 2, horizontal: c === 2 ? 'left' : (c === 1 || c === 4 || c === 6) ? 'center' : 'right' };
+                    }
+                    row.getCell(3).numberFormat = '#,##0';
+                    row.getCell(5).numberFormat = '#,##0';
+                    rowNum++;
+                });
+                const last = rowNum - 1;
+                const secCell = ws.getCell(`G${secRow}`);
+                secCell.value = { formula: `SUM(E${first}:E${last})`, result: secSum };
+                secCell.numberFormat = '#,##0 "₽"';
+                secCell.font = { name: FONT, size: 11, bold: true };
+                secCell.alignment = { horizontal: 'right', vertical: 'middle' };
+            });
+            
+            const totalRow = rowNum;
+            ws.mergeCells(`A${totalRow}:F${totalRow}`);
+            const tl = ws.getCell(`A${totalRow}`);
+            const tv = ws.getCell(`G${totalRow}`);
+            if (spec.isPriceMissing) {
+                tl.value = 'Для выбранного размера цена уточняется у менеджера';
+                tl.font = { name: FONT, size: 11, bold: true, color: { argb: 'FFE65100' } };
+            } else {
+                tl.value = 'ИТОГО по спецификации';
+                tl.font = { name: FONT, size: 12, bold: true };
+                tv.value = { formula: sectionRows.map(r => `G${r}`).join('+'), result: spec.totalSum };
+                tv.numberFormat = '#,##0 "₽"';
+                tv.font = { name: FONT, size: 12, bold: true, color: { argb: 'FF0A4C73' } };
+            }
+            tl.alignment = { horizontal: 'right', vertical: 'middle' };
+            tv.alignment = { horizontal: 'right', vertical: 'middle' };
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+                ws.getCell(`${col}${totalRow}`).border = border;
+                ws.getCell(`${col}${totalRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } };
+            });
+            ws.getRow(totalRow).height = 24;
+            ws.views = [{ state: 'frozen', ySplit: 4 }];
+            
+            const buf = await wb.xlsx.writeBuffer();
+            saveBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), specFileName(shapeType) + '.xlsx');
+        } catch (e) {
+            console.error('Excel export failed:', e);
+            downloadSpecCsv(shapeType, spec);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '⬇️ Скачать спецификацию в Excel'; }
+        }
     }
     
     // ========== ОБНОВЛЕНИЕ ИТОГОВОЙ СТОИМОСТИ ==========
@@ -1535,7 +1767,6 @@
         const container = document.getElementById(`${shapeType}LightGroup`);
         if(!container) return;
         const state = selectedState[shapeType];
-        const p = getLightPrices(shapeType);
         const n = state.lightCount || 0;
         container.innerHTML = '';
         
