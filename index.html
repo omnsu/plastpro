@@ -249,6 +249,17 @@
         .price-btn.selected { background: #2c7cb6; border-color: #0e4b75; color: white; }
         .price-btn:hover { background: #e5f0fa; transform: translateY(-2px); }
         
+        /* Счётчик прожекторов */
+        .light-counter { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; background: #f9fdfe; border: 1px solid #cde0f0; border-radius: 20px; padding: 10px 18px; }
+        .light-info { display: flex; flex-direction: column; gap: 2px; color: #1b668f; font-size: 0.85rem; }
+        .light-info span { font-size: 0.78rem; color: #5a7f99; }
+        .light-controls { display: flex; align-items: center; gap: 12px; }
+        .light-btn { width: 34px; height: 34px; border-radius: 50%; border: 1px solid #2c7cb6; background: white; color: #2c7cb6; font-size: 1.3rem; line-height: 1; cursor: pointer; transition: 0.2s; }
+        .light-btn:hover:not(:disabled) { background: #2c7cb6; color: white; }
+        .light-btn:disabled { opacity: 0.35; cursor: default; }
+        .light-count { min-width: 24px; text-align: center; font-size: 1.15rem; font-weight: 700; color: #0a4c73; }
+        .light-sum { margin-left: auto; font-weight: 700; color: #0a4c73; min-width: 80px; text-align: right; }
+        
         /* Стили для карточек лестниц */
         .stairs-card {
             display: flex;
@@ -516,11 +527,11 @@
                 <h3 onclick="toggleStairsSection('rect')">🪜 Лестница <span id="rectStairsToggleIcon">▼</span></h3>
                 <div id="rectStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
             </div>
-            <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="rectEmbedGroup"></div></div>
             <div class="section"><h3>〰️ Радиусные углы</h3><div class="option-group" id="rectRadiusGroup"></div></div>
-            <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="rectMountGroup"></div></div>
+            <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="rectMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="rectLightGroup"></div></div>
-            <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="rectEquipGroup"></div></div>
+            <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="rectEquipGroup"></div></div>
+            <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="rectHeatGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="rectTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -578,9 +589,10 @@
             </div>
             <div class="section"><h3>🔘 Финишный борт</h3><div class="option-group" id="circleEdgeGroup"></div></div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="circleEmbedGroup"></div></div>
-            <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="circleMountGroup"></div></div>
+            <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="circleMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="circleLightGroup"></div></div>
-            <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="circleEquipGroup"></div></div>
+            <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="circleEquipGroup"></div></div>
+            <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="circleHeatGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="circleTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -644,10 +656,10 @@
                 <h3 onclick="toggleStairsSection('oval')">🪜 Лестница <span id="ovalStairsToggleIcon">▼</span></h3>
                 <div id="ovalStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
             </div>
-            <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="ovalEmbedGroup"></div></div>
-            <div class="section"><h3>🧰 Монтаж чаши</h3><div class="option-group" id="ovalMountGroup"></div></div>
+            <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="ovalMountGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="ovalLightGroup"></div></div>
-            <div class="section"><h3>⚙️ Оборудование</h3><div class="option-group" id="ovalEquipGroup"></div></div>
+            <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="ovalEquipGroup"></div></div>
+            <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="ovalHeatGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="ovalTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -681,14 +693,6 @@
     
     // ========== КАТАЛОГ ЛЕСТНИЦ (фото и описание в коде) ==========
     const stairsCatalog = [
-        { 
-            id: "stairs_corner", 
-            name: "Угловая", 
-            description: "Компактная угловая лестница",
-            image: "stairs_corner.png",
-            installType: "Под бетонирование",
-            priceId: "stairs_corner"
-        },
         { 
             id: "stairs_bench_full", 
             name: "Лавочка во всю ширину", 
@@ -763,23 +767,113 @@
     
     // ---------- ОПИСАНИЕ ТОВАРОВ ----------
     const mountItems = [
-        { name: "Песчаная подушка + геотекстиль", qty: 1, id: "mount1", category: "Монтаж чаши" },
-        { name: "Утеплитель", qty: 1, id: "mount2", category: "Монтаж чаши" },
-        { name: "Армирование", qty: 1, id: "mount3", category: "Монтаж чаши" },
-        { name: "Гидроизоляция жидкая", qty: 1, id: "mount4", category: "Монтаж чаши" }
+        { name: "Утепление", qty: 1, id: "mount2", category: "Дополнительные услуги" },
+        { name: "Армирование", qty: 1, id: "mount3", category: "Дополнительные услуги" }
     ];
     
-    const lightOptions = [
-        { name: "1 прожектор", qty: 1, id: "light_single", category: "Освещение" },
-        { name: "2 прожектора (скидка 50% на второй)", qty: 2, id: "light_double", category: "Освещение" }
-    ];
+    // Освещение: счётчик прожекторов. Цены берутся из таблицы (light_first, light_next),
+    // если в таблице их нет - используются значения по умолчанию.
+    const LIGHT_DEFAULTS = { first: 25800, next: 18000 };
+    const LIGHT_MAX = 20;
+    function getLightPrices(shapeType) {
+        const first = getOptionPrice(shapeType, 'light_first');
+        const next = getOptionPrice(shapeType, 'light_next');
+        return {
+            first: first > 0 ? first : LIGHT_DEFAULTS.first,
+            next: next > 0 ? next : LIGHT_DEFAULTS.next
+        };
+    }
+    function getLightTotal(shapeType) {
+        const n = selectedState[shapeType].lightCount;
+        if (!n || n < 1) return 0;
+        const p = getLightPrices(shapeType);
+        return p.first + (n - 1) * p.next;
+    }
     
-    const equipItems = [
-        { name: "Насос фильтрации 0.75 кВт", qty: 1, id: "equip1", category: "Оборудование" },
-        { name: "Песчаный фильтр", qty: 1, id: "equip2", category: "Оборудование" },
-        { name: "УФ-стерилизатор", qty: 1, id: "equip3", category: "Оборудование" },
-        { name: "Хлор-генератор", qty: 1, id: "equip4", category: "Оборудование" }
+    // ========== ФИЛЬТРАЦИЯ ==========
+    // Фильтровальная установка: цена по размеру бассейна (строки filter_unit; для овального берутся строки rect).
+    // Скиммер, форсунка, установка: по одной универсальной строке (shape = all).
+    // Если строк в таблице нет - используются значения по умолчанию.
+    const filterItems = [
+        { name: "Фильтровальная установка (бочка + насос)", qty: 1, id: "filter_unit", category: "Фильтрация" },
+        { name: "Скиммер 1 шт, форсунки 2 шт с установкой", qty: 1, id: "filter_set", category: "Фильтрация" }
     ];
+    const FILTER_DEFAULTS = { skimmer: 6900, nozzle: 2150, install: 2500 };
+    const FILTER_NOZZLES = 2;        // форсунок в комплекте
+    const FILTER_INSTALL_PARTS = 3;  // деталей к установке: 1 скиммер + 2 форсунки
+    
+    function getSizeKey(shapeType) {
+        const st = selectedState[shapeType];
+        return shapeType === 'circle' ? `d${st.diameter}` : `${st.length}x${st.width}`;
+    }
+    function getSizedOptionPrice(shapeType, id) {
+        // Овальный бассейн берёт цены из строк прямоугольного (rect), если своих (oval) нет
+        const stores = shapeType === 'oval' ? [optionPrices.oval, optionPrices.rect] : [optionPrices[shapeType]];
+        const st = selectedState[shapeType];
+        const keys = [`${id}_${getSizeKey(shapeType)}`];
+        if (shapeType !== 'circle') keys.push(`${id}_${st.width}x${st.length}`);
+        for (const store of stores) {
+            for (const key of keys) {
+                const v = store[key];
+                if (v !== undefined && v > 0) return v;
+            }
+        }
+        return 0;
+    }
+    function getFilterUnitDefault(shapeType) {
+        const st = selectedState[shapeType];
+        const area = shapeType === 'circle' ? Math.PI * st.diameter * st.diameter / 4 : st.length * st.width;
+        if (area <= 8.001) return 24000;
+        if (area <= 15.001) return 30000;
+        if (area <= 18.001) return 36000;
+        return 48000;
+    }
+    // ========== ПОДОГРЕВ ВОДЫ ==========
+    // Мощность зависит от объёма бассейна (глубина всегда 1.5 м). Границы: 5x3x1.5 = 22.5 м3 и 7x3x1.5 = 31.5 м3.
+    // Цены берутся из таблицы (строки heat_exchanger_40/75/120, heat_pump_9/12; shape = all),
+    // если строк нет - используются значения по умолчанию.
+    const HEAT_VOL_1 = 22.5;
+    const HEAT_VOL_2 = 31.5;
+    const HEAT_DEFAULTS = { heat_exchanger_40: 57250, heat_exchanger_75: 66000, heat_exchanger_120: 73750, heat_pump_9: 128000, heat_pump_12: 148000 };
+    const heatItems = [
+        { id: "heat_exchanger", qty: 1, category: "Подогрев воды" },
+        { id: "heat_pump", qty: 1, category: "Подогрев воды" }
+    ];
+    function getPoolVolume(shapeType) {
+        const st = selectedState[shapeType];
+        if (shapeType === 'circle') return calculateVolume('circle', { diameter: st.diameter });
+        return calculateVolume(shapeType, { length: st.length, width: st.width });
+    }
+    function getHeatItem(shapeType, id) {
+        const vol = getPoolVolume(shapeType);
+        const EPS = 1e-6;
+        let key, name;
+        if (id === 'heat_exchanger') {
+            if (vol < HEAT_VOL_1 - EPS) { key = 'heat_exchanger_40'; name = 'Теплообменник 40 кВт'; }
+            else if (vol < HEAT_VOL_2 - EPS) { key = 'heat_exchanger_75'; name = 'Теплообменник 75 кВт'; }
+            else { key = 'heat_exchanger_120'; name = 'Теплообменник 120 кВт'; }
+        } else {
+            if (vol <= HEAT_VOL_1 + EPS) { key = 'heat_pump_9'; name = 'Тепловой насос (электрический) 9 кВт'; }
+            else { key = 'heat_pump_12'; name = 'Тепловой насос (электрический) 12 кВт'; }
+        }
+        const t = getOptionPrice(shapeType, key);
+        return { id: id, name: name, qty: 1, category: "Подогрев воды", price: t > 0 ? t : HEAT_DEFAULTS[key] };
+    }
+    
+    function getFilterPrice(shapeType, id) {
+        if (id === 'filter_unit') {
+            const t = getSizedOptionPrice(shapeType, 'filter_unit');
+            return t > 0 ? t : getFilterUnitDefault(shapeType);
+        }
+        if (id === 'filter_set') {
+            // скиммер, форсунка и установка - одна цена для всех размеров (строки filter_skimmer/nozzle/install, shape = all)
+            const sk = getOptionPrice(shapeType, 'filter_skimmer') || FILTER_DEFAULTS.skimmer;
+            const nz = getOptionPrice(shapeType, 'filter_nozzle') || FILTER_DEFAULTS.nozzle;
+            const ins = getOptionPrice(shapeType, 'filter_install') || FILTER_DEFAULTS.install;
+            return sk + FILTER_NOZZLES * nz + FILTER_INSTALL_PARTS * ins;
+        }
+        return 0;
+    }
     
     const embedItems = [
         { name: "Закладная под вагонку (1 шт)", qty: 1, id: "embed_1", category: "Закладные детали" },
@@ -787,6 +881,11 @@
     ];
     
     const radiusItem = { name: "Радиусные углы (скругление)", qty: 1, id: "radius_corners", category: "Дополнительно" };
+    const RADIUS_DEFAULT_PRICE = 16000;
+    function getRadiusPrice() {
+        const p = getOptionPrice('rect', 'radius_corners');
+        return p > 0 ? p : RADIUS_DEFAULT_PRICE;
+    }
     const edgeItem = { name: "Финишный борт (декоративный)", qty: 1, id: "edge_finish", category: "Финишный борт" };
     
     // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ЦЕНАМИ ==========
@@ -804,6 +903,14 @@
             const key = `${id}_${sizeKey}`;
             if (optionPrices[shapeType][key] !== undefined && optionPrices[shapeType][key] > 0) {
                 return optionPrices[shapeType][key];
+            }
+            // в таблице может быть только одна из зеркальных записей (2x1.5 вместо 1.5x2)
+            const parts = sizeKey.split('x');
+            if (parts.length === 2) {
+                const mirrorKey = `${id}_${parts[1]}x${parts[0]}`;
+                if (optionPrices[shapeType][mirrorKey] !== undefined && optionPrices[shapeType][mirrorKey] > 0) {
+                    return optionPrices[shapeType][mirrorKey];
+                }
             }
             return 0;
         }
@@ -844,9 +951,9 @@
     
     // ========== СОСТОЯНИЕ ВЫБРАННЫХ ОПЦИЙ ==========
     const selectedState = {
-        rect: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), radius: new Set(), length: 3, width: 2, currentVolume: 0 },
-        circle: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), edge: new Set(), diameter: 3, currentVolume: 0 },
-        oval: { mount: new Set(), light: new Set(), equip: new Set(), stairs: new Set(), embed: new Set(), length: 4, width: 2.5, currentVolume: 0 }
+        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), stairs: new Set(), embed: new Set(), radius: new Set(), length: 3, width: 2, currentVolume: 0 },
+        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), stairs: new Set(), embed: new Set(), edge: new Set(), diameter: 3, currentVolume: 0 },
+        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), stairs: new Set(), embed: new Set(), length: 4, width: 2.5, currentVolume: 0 }
     };
     
     // ========== ЗАГРУЗКА ЦЕН ИЗ GOOGLE SHEETS ==========
@@ -890,17 +997,21 @@
                             }
                         }
                         // Для опций (утеплитель, армирование, финишный борт, закладные, лестницы)
-                        else if (shape === 'rect' || shape === 'circle' || shape === 'oval') {
-                            const optionKey = `${type}_${sizeKey}`;
-                            if (!optionPrices[shape][optionKey]) {
-                                optionPrices[shape][optionKey] = price;
-                                loadedCount++;
-                                console.log(`✅ Загружена опция: ${shape} ${optionKey} = ${price}`);
-                            }
-                            // Также сохраняем просто по типу для обратной совместимости
-                            if (!optionPrices[shape][type]) {
-                                optionPrices[shape][type] = price;
-                            }
+                        else if (shape === 'rect' || shape === 'circle' || shape === 'oval' || shape === 'all') {
+                            // shape = all: одна строка действует для всех форм бассейна
+                            const targets = (shape === 'all') ? ['rect', 'circle', 'oval'] : [shape];
+                            targets.forEach(sh => {
+                                const optionKey = `${type}_${sizeKey}`;
+                                if (!optionPrices[sh][optionKey]) {
+                                    optionPrices[sh][optionKey] = price;
+                                    loadedCount++;
+                                    console.log(`✅ Загружена опция: ${sh} ${optionKey} = ${price}`);
+                                }
+                                // Также сохраняем просто по типу для обратной совместимости
+                                if (!optionPrices[sh][type]) {
+                                    optionPrices[sh][type] = price;
+                                }
+                            });
                         }
                     }
                 }
@@ -922,6 +1033,10 @@
             if (priceMatrix.rect[key] && priceMatrix.rect[key] > 0) {
                 return priceMatrix.rect[key];
             }
+            const mirror = `${state.width}x${state.length}`;
+            if (priceMatrix.rect[mirror] && priceMatrix.rect[mirror] > 0) {
+                return priceMatrix.rect[mirror];
+            }
             return -1;
         }
         else if (shapeType === 'circle') {
@@ -935,6 +1050,10 @@
             const key = `${state.length}x${state.width}`;
             if (priceMatrix.oval[key] && priceMatrix.oval[key] > 0) {
                 return priceMatrix.oval[key];
+            }
+            const mirror = `${state.width}x${state.length}`;
+            if (priceMatrix.oval[mirror] && priceMatrix.oval[mirror] > 0) {
+                return priceMatrix.oval[mirror];
             }
             return -1;
         }
@@ -1013,8 +1132,9 @@
         const displayPrice = isPriceMissing ? 0 : basePrice;
         
         const selectedMount = Array.from(state.mount).map(id => mountMap.get(id)).filter(i => i && i.price > 0);
-        const selectedLight = Array.from(state.light).map(id => ({ ...lightOptions.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
-        const selectedEquip = Array.from(state.equip).map(id => ({ ...equipItems.find(i => i.id === id), price: getOptionPrice(shapeType, id) })).filter(i => i && i.price);
+        const lightCount = state.lightCount || 0;
+        const selectedHeat = Array.from(state.heat).map(id => getHeatItem(shapeType, id));
+        const selectedEquip = Array.from(state.equip).map(id => ({ ...filterItems.find(i => i.id === id), price: getFilterPrice(shapeType, id) })).filter(i => i && i.price);
         
         // Получаем выбранные лестницы с ценами
         const selectedStairs = [];
@@ -1061,12 +1181,12 @@
         }
         
         const addItem = (item, cat, price) => { 
-            rows.push({category: cat, name: item.name, price: price, qty: item.qty || 1, sum: price});
+            rows.push({category: cat, name: item.name, price: price, qty: item.qty || 1, sum: price, unitText: item.unitText});
         };
         
         if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА", item.price));
         if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ", item.price));
-        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "ДОПОЛНИТЕЛЬНО", getOptionPrice(shapeType, 'radius_corners'));
+        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "ДОПОЛНИТЕЛЬНО", getRadiusPrice());
         
         if (shapeType === 'circle' && state.edge.has(edgeItem.id)) {
             const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
@@ -1077,14 +1197,17 @@
             }
         }
         
-        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "МОНТАЖ ЧАШИ", item.price));
-        if(selectedLight.length) selectedLight.forEach(item => addItem(item, "ОСВЕЩЕНИЕ", item.price));
-        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ОБОРУДОВАНИЕ", item.price));
+        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ", item.price));
+        if(lightCount > 0) {
+            addItem({ name: "Прожектор", qty: lightCount, unitText: "—" }, "ОСВЕЩЕНИЕ", getLightTotal(shapeType));
+        }
+        if(selectedEquip.length) selectedEquip.forEach(item => addItem(item, "ФИЛЬТРАЦИЯ", item.price));
+        if(selectedHeat.length) selectedHeat.forEach(item => addItem(item, "ПОДОГРЕВ ВОДЫ", item.price));
         
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
         
-        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !selectedLight.length && !selectedEquip.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
+        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
             container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
             return;
         }
@@ -1113,7 +1236,7 @@
                 rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
                                 <td style="padding:10px 8px; text-align:left;">${row.name}</td>
                                 <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} шт</td>
-                                <td style="padding:10px 8px; text-align:right; width:110px;">${pricePerUnit.toLocaleString('ru-RU')}</td>
+                                <td style="padding:10px 8px; text-align:right; width:110px;">${row.unitText ? row.unitText : pricePerUnit.toLocaleString('ru-RU')}</td>
                                 <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
                               </tr>`;
                 totalSum += row.sum;
@@ -1161,8 +1284,9 @@
         let extra = 0;
         
         for(let id of state.mount) extra += mountMap.get(id)?.price || 0;
-        for(let id of state.light) extra += getOptionPrice(shapeType, id);
-        for(let id of state.equip) extra += getOptionPrice(shapeType, id);
+        extra += getLightTotal(shapeType);
+        for(let id of state.equip) extra += getFilterPrice(shapeType, id);
+        for(let id of state.heat) extra += getHeatItem(shapeType, id).price;
         
         for(let id of state.stairs) {
             const price = getStairsPrice(shapeType, id, state.width);
@@ -1186,7 +1310,7 @@
             }
         } else {
             for(let id of state.embed) extra += getOptionPrice(shapeType, id);
-            if(shapeType === 'rect' && state.radius.has(radiusItem.id)) extra += getOptionPrice(shapeType, 'radius_corners');
+            if(shapeType === 'rect' && state.radius.has(radiusItem.id)) extra += getRadiusPrice();
         }
         
         const totalSpan = document.getElementById(`${shapeType}TotalCost`);
@@ -1397,7 +1521,7 @@
         const btn = document.createElement('div'); 
         btn.className = 'price-btn';
         if(selected.has(radiusItem.id)) btn.classList.add('selected');
-        btn.innerHTML = `${radiusItem.name} ${getOptionPrice('rect', 'radius_corners').toLocaleString('ru-RU')} ₽`;
+        btn.innerHTML = `${radiusItem.name} ${getRadiusPrice().toLocaleString('ru-RU')} ₽`;
         btn.onclick = () => { 
             if(selected.has(radiusItem.id)) selected.delete(radiusItem.id);
             else selected.add(radiusItem.id);
@@ -1410,21 +1534,42 @@
     function renderLight(shapeType){
         const container = document.getElementById(`${shapeType}LightGroup`);
         if(!container) return;
-        const selected = selectedState[shapeType].light;
+        const state = selectedState[shapeType];
+        const p = getLightPrices(shapeType);
+        const n = state.lightCount || 0;
         container.innerHTML = '';
-        lightOptions.forEach(opt => {
-            const btn = document.createElement('div'); 
-            btn.className = 'price-btn';
-            if(selected.has(opt.id)) btn.classList.add('selected');
-            btn.innerHTML = `${opt.name} ${getOptionPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
-            btn.onclick = () => { 
-                if(selected.has(opt.id)) selected.delete(opt.id);
-                else { selected.clear(); selected.add(opt.id); } 
-                renderLight(shapeType); 
-                updateTotalAndSpec(shapeType); 
-            };
-            container.appendChild(btn);
-        });
+        
+        const wrap = document.createElement('div');
+        wrap.className = 'light-counter';
+        
+        const info = document.createElement('div');
+        info.className = 'light-info';
+        info.innerHTML = `<b>Прожектор</b>`;
+        
+        const controls = document.createElement('div');
+        controls.className = 'light-controls';
+        
+        const minus = document.createElement('button');
+        minus.type = 'button'; minus.className = 'light-btn'; minus.textContent = '−';
+        minus.disabled = n <= 0;
+        minus.onclick = () => { if(state.lightCount > 0) { state.lightCount--; renderLight(shapeType); updateTotalAndSpec(shapeType); } };
+        
+        const count = document.createElement('span');
+        count.className = 'light-count'; count.textContent = n;
+        
+        const plus = document.createElement('button');
+        plus.type = 'button'; plus.className = 'light-btn'; plus.textContent = '+';
+        plus.disabled = n >= LIGHT_MAX;
+        plus.onclick = () => { if(state.lightCount < LIGHT_MAX) { state.lightCount++; renderLight(shapeType); updateTotalAndSpec(shapeType); } };
+        
+        controls.append(minus, count, plus);
+        
+        const sum = document.createElement('div');
+        sum.className = 'light-sum';
+        sum.textContent = n > 0 ? `${getLightTotal(shapeType).toLocaleString('ru-RU')} ₽` : '—';
+        
+        wrap.append(info, controls, sum);
+        container.appendChild(wrap);
     }
     
     function renderEdge(shapeType){
@@ -1460,6 +1605,47 @@
             updateTotalAndSpec('circle'); 
         };
         container.appendChild(btn);
+    }
+    
+    function renderFilter(shapeType){
+        const c = document.getElementById(`${shapeType}EquipGroup`);
+        if(!c) return;
+        c.innerHTML = '';
+        filterItems.forEach(opt => {
+            const btn = document.createElement('div');
+            btn.className = 'price-btn';
+            if(selectedState[shapeType].equip.has(opt.id)) btn.classList.add('selected');
+            btn.innerHTML = `${opt.name} ${getFilterPrice(shapeType, opt.id).toLocaleString('ru-RU')} ₽`;
+            btn.onclick = () => {
+                const set = selectedState[shapeType].equip;
+                if(set.has(opt.id)) set.delete(opt.id);
+                else set.add(opt.id);
+                btn.classList.toggle('selected');
+                updateTotalAndSpec(shapeType);
+            };
+            c.appendChild(btn);
+        });
+    }
+    
+    function renderHeat(shapeType){
+        const c = document.getElementById(`${shapeType}HeatGroup`);
+        if(!c) return;
+        c.innerHTML = '';
+        heatItems.forEach(base => {
+            const opt = getHeatItem(shapeType, base.id);
+            const btn = document.createElement('div');
+            btn.className = 'price-btn';
+            if(selectedState[shapeType].heat.has(opt.id)) btn.classList.add('selected');
+            btn.innerHTML = `${opt.name} ${opt.price.toLocaleString('ru-RU')} ₽`;
+            btn.onclick = () => {
+                const set = selectedState[shapeType].heat;
+                if(set.has(opt.id)) set.delete(opt.id);
+                else set.add(opt.id);
+                btn.classList.toggle('selected');
+                updateTotalAndSpec(shapeType);
+            };
+            c.appendChild(btn);
+        });
     }
     
     function renderStaticEquip(containerId, items, shapeType, cat){
@@ -1645,6 +1831,8 @@
         const infoDiv = document.getElementById(`${shapeType}VolumeInfo`); 
         if(infoDiv) infoDiv.innerText = `Объем: ${vol.toFixed(2)} м³`;
         reRenderMount(shapeType);
+        renderFilter(shapeType);
+        renderHeat(shapeType);
         updateTotalAndSpec(shapeType);
     }
     
@@ -1657,7 +1845,8 @@
         
         ['rect', 'circle', 'oval'].forEach(sh => {
             renderLight(sh);
-            renderStaticEquip(`${sh}EquipGroup`, equipItems, sh, 'equip');
+            renderFilter(sh);
+            renderHeat(sh);
             reRenderMount(sh);
             renderStairs(sh);
             renderEmbed(sh);
@@ -1680,7 +1869,8 @@
                 renderStairs(sh);
                 renderEmbed(sh);
                 renderLight(sh);
-                renderStaticEquip(`${sh}EquipGroup`, equipItems, sh, 'equip');
+                renderFilter(sh);
+            renderHeat(sh);
                 if(sh === 'rect') renderRadius(sh);
                 if(sh === 'circle') renderEdge(sh);
                 updateVolume(sh);
