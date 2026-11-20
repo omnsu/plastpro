@@ -534,6 +534,7 @@
             </div>
             <div class="section"><h3>〰️ Радиусные углы</h3><div class="option-group" id="rectRadiusGroup"></div></div>
             <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="rectMountGroup"></div></div>
+            <div class="section"><h3>🏠 Тех. помещение для оборудования</h3><div class="option-group" id="rectTechGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="rectLightGroup"></div></div>
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="rectEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="rectHeatGroup"></div></div>
@@ -596,6 +597,7 @@
             <div class="section"><h3>🔘 Финишный борт</h3><div class="option-group" id="circleEdgeGroup"></div></div>
             <div class="section"><h3>🔩 Закладные под вагонку</h3><div class="option-group" id="circleEmbedGroup"></div></div>
             <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="circleMountGroup"></div></div>
+            <div class="section"><h3>🏠 Тех. помещение для оборудования</h3><div class="option-group" id="circleTechGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="circleLightGroup"></div></div>
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="circleEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="circleHeatGroup"></div></div>
@@ -664,6 +666,7 @@
                 <div id="ovalStairsGroup" class="option-group stairs-collapsed" style="display: none;"></div>
             </div>
             <div class="section"><h3>🧰 Дополнительные услуги</h3><div class="option-group" id="ovalMountGroup"></div></div>
+            <div class="section"><h3>🏠 Тех. помещение для оборудования</h3><div class="option-group" id="ovalTechGroup"></div></div>
             <div class="section"><h3>💡 Освещение</h3><div class="option-group" id="ovalLightGroup"></div></div>
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="ovalEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="ovalHeatGroup"></div></div>
@@ -738,7 +741,7 @@
     const stairsCatalog = [
         { 
             id: "stairs_bench_full", 
-            name: "Лавочка во всю ширину", 
+            name: "Лестница во всю ширину со ступенью", 
             description: "Вторая ступень +6.000 руб",
             image: "stairs_bench.png",
             installType: "Самостоятельно стоящая",
@@ -834,7 +837,8 @@
         light_projector: 13500, light_remote: 2150, light_transformer: 5700, light_adapter: 950, light_install: 3500,
         pipe_pvc: 330, pipe_ball_valve: 1250, pipe_coupling: 390, pipe_nipple: 110, pipe_elbow45: 130,
         pipe_elbow90: 125, pipe_tee: 190, pipe_check_valve: 1250, pipe_holder: 35, pipe_glue: 1250,
-        chlor_dosator: 9500
+        chlor_dosator: 9500,
+        tech_room: 35000, tech_box: 16000
     };
     function eqPrice(shapeType, key) {
         const t = getOptionPrice(shapeType, key);
@@ -910,6 +914,36 @@
             lines = [ eqLine(shapeType, name, `heat_pump_${kw}`, 1, 'шт.') ];
         }
         return { id: id, name: name, lines: lines, price: linesSum(lines) };
+    }
+    
+    // ========== ТЕХ. ПОМЕЩЕНИЕ ДЛЯ ОБОРУДОВАНИЯ ==========
+    const techItems = [
+        { id: "tech_room", name: "Тех. помещение для заглубления (1,5 × 1 м)" },
+        { id: "tech_box", name: "Тех. бокс для установки на поверхности (0,8 × 0,8 м)" }
+    ];
+    function getTechItem(shapeType, id) {
+        const it = techItems.find(i => i.id === id);
+        return { id: id, name: it.name, qty: 1, unit: 'шт.', price: eqPrice(shapeType, id) };
+    }
+    function renderTech(shapeType){
+        const c = document.getElementById(`${shapeType}TechGroup`);
+        if(!c) return;
+        c.innerHTML = '';
+        techItems.forEach(base => {
+            const opt = getTechItem(shapeType, base.id);
+            const btn = document.createElement('div');
+            btn.className = 'price-btn';
+            if(selectedState[shapeType].tech.has(opt.id)) btn.classList.add('selected');
+            btn.innerHTML = `${opt.name} ${opt.price.toLocaleString('ru-RU')} ₽`;
+            btn.onclick = () => {
+                const set = selectedState[shapeType].tech;
+                if(set.has(opt.id)) set.delete(opt.id);
+                else set.add(opt.id);
+                btn.classList.toggle('selected');
+                updateTotalAndSpec(shapeType);
+            };
+            c.appendChild(btn);
+        });
     }
     
     // ========== ХЛОРДОЗАЦИЯ ==========
@@ -1084,9 +1118,9 @@
     
     // ========== СОСТОЯНИЕ ВЫБРАННЫХ ОПЦИЙ ==========
     const selectedState = {
-        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
-        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
-        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
+        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
+        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
+        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
     };
     
     // ========== ЗАГРУЗКА ЦЕН ИЗ GOOGLE SHEETS ==========
@@ -1300,9 +1334,12 @@
         };
         const addLines = (lines, cat) => lines.forEach(l => addItem({ name: l.name, qty: l.qty, unit: l.unit }, cat, l.qty * l.unitPrice));
         
+        const selectedTech = techItems.filter(i => state.tech.has(i.id)).map(i => getTechItem(shapeType, i.id));
+        
+        // ----- БАССЕЙН: чаша, радиусные углы, лестница, (круглый: закладные, борт), армирование, утепление, тех. помещение -----
+        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "РАДИУСНЫЕ УГЛЫ", getRadiusPrice());
         if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА", item.price));
         if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ", item.price));
-        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "ДОПОЛНИТЕЛЬНО", getRadiusPrice());
         
         if (shapeType === 'circle' && state.edge.has(edgeItem.id)) {
             const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
@@ -1313,63 +1350,88 @@
             }
         }
         
-        if(selectedMount.length) selectedMount.forEach(item => addItem(item, "ДОПОЛНИТЕЛЬНЫЕ УСЛУГИ", item.price));
-        if(lightCount > 0) addLines(getLightLines(shapeType), "ОСВЕЩЕНИЕ");
+        const mountRow = (id, cat) => { const item = selectedMount.find(i => i.id === id); if(item) addItem(item, cat, item.price); };
+        mountRow('mount3', "АРМИРОВАНИЕ");
+        mountRow('mount2', "УТЕПЛЕНИЕ");
+        selectedTech.forEach(item => addItem(item, "ТЕХ. ПОМЕЩЕНИЕ ДЛЯ ОБОРУДОВАНИЯ", item.price));
+        
+        // ----- ОБОРУДОВАНИЕ: фильтрация, подогрев, подсветка, хлордозация -----
         if(selectedEquip.length) selectedEquip.forEach(item => addLines(getFilterLines(shapeType, item.id), item.id === "pipes" ? "ТРУБЫ И ФИТИНГИ" : "ФИЛЬТРАЦИЯ"));
         if(selectedHeat.length) selectedHeat.forEach(item => addLines(item.lines, "ПОДОГРЕВ ВОДЫ"));
+        if(lightCount > 0) addLines(getLightLines(shapeType), "ОСВЕЩЕНИЕ");
         if(selectedChlor.length) selectedChlor.forEach(item => addLines(getChlorLines(shapeType, item.id), "ХЛОРДОЗАЦИЯ"));
         
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
         
-        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedChlor.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
+        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedChlor.length && !selectedTech.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
             container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
             return;
         }
         
-        let rowsHtml = "";
-        let lastCat = "";
-        let totalSum = 0;
+        const EQUIP_CATS = ["ФИЛЬТРАЦИЯ", "ТРУБЫ И ФИТИНГИ", "ПОДОГРЕВ ВОДЫ", "ОСВЕЩЕНИЕ", "ХЛОРДОЗАЦИЯ"];
+        rows.forEach(r => { r.group = EQUIP_CATS.includes(r.category) ? "ОБОРУДОВАНИЕ" : "БАССЕЙН"; });
+        const GROUP_ORDER = ["БАССЕЙН", "ОБОРУДОВАНИЕ"];
+        const GROUP_TOTAL_LABEL = { "БАССЕЙН": "ИТОГО за бассейн:", "ОБОРУДОВАНИЕ": "ИТОГО за оборудование:" };
         
-        const catSums = {}, catCounts = {};
+        const catSums = {}, catCounts = {}, groupSums = {}, groupCounts = {};
         rows.forEach(r => {
             catCounts[r.category] = (catCounts[r.category] || 0) + 1;
-            if(r.priceText !== "цену уточняйте") catSums[r.category] = (catSums[r.category] || 0) + r.sum;
-        });
-        
-        rows.forEach(row => {
-            if(row.category !== lastCat && row.category) { 
-                const catSumText = catCounts[row.category] > 1 ? `${(catSums[row.category] || 0).toLocaleString('ru-RU')} ₽` : '';
-                rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
-                                <td colspan="3" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
-                                <td style="padding:10px 8px; text-align:right; font-weight:800; color:#0a4c73; font-size:0.9rem;">${catSumText}</td>
-                              </tr>`;
-                lastCat = row.category; 
+            groupCounts[r.group] = (groupCounts[r.group] || 0) + 1;
+            if(r.priceText !== "цену уточняйте") {
+                catSums[r.category] = (catSums[r.category] || 0) + r.sum;
+                groupSums[r.group] = (groupSums[r.group] || 0) + r.sum;
             }
-            
-            if(row.priceText === "цену уточняйте") {
-                rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                                <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
-                                <td style="padding:10px 8px; text-align:right; width:110px; color:#e65100; font-weight:600;">цену уточняйте</td>
-                                <td style="padding:10px 8px; text-align:right; width:120px; color:#e65100; font-weight:600;">—</td>
+        });
+        const totalSum = (groupSums["БАССЕЙН"] || 0) + (groupSums["ОБОРУДОВАНИЕ"] || 0);
+        const showGroupTotal = group => (group === "ОБОРУДОВАНИЕ" || !isPriceMissing);
+        
+        let rowsHtml = "";
+        GROUP_ORDER.forEach(group => {
+            if(!groupCounts[group]) return;
+            rowsHtml += `<tr style="background:#0a4c73;">
+                            <td colspan="4" style="padding:11px 8px; font-weight:800; color:#ffffff; letter-spacing:1px; font-size:1rem;">${group}</td>
+                          </tr>`;
+            let lastCat = "";
+            rows.filter(r => r.group === group).forEach(row => {
+                if(row.category !== lastCat && row.category) { 
+                    const catSumText = catCounts[row.category] > 1 ? `${(catSums[row.category] || 0).toLocaleString('ru-RU')} ₽` : '';
+                    rowsHtml += `<tr style="background:#e6f2fa; border-top:2px solid #bdd8ec;">
+                                    <td colspan="3" style="padding:10px 8px; font-weight:800; color:#0a4c73; font-size:0.9rem;">${row.category}</td>
+                                    <td style="padding:10px 8px; text-align:right; font-weight:800; color:#0a4c73; font-size:0.9rem;">${catSumText}</td>
+                                  </tr>`;
+                    lastCat = row.category; 
+                }
+                
+                if(row.priceText === "цену уточняйте") {
+                    rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                                    <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                    <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
+                                    <td style="padding:10px 8px; text-align:right; width:110px; color:#e65100; font-weight:600;">цену уточняйте</td>
+                                    <td style="padding:10px 8px; text-align:right; width:120px; color:#e65100; font-weight:600;">—</td>
+                                  </tr>`;
+                } else {
+                    const pricePerUnit = Math.round(row.price / (row.qty || 1));
+                    rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                                    <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                    <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
+                                    <td style="padding:10px 8px; text-align:right; width:110px;">${row.unitText ? row.unitText : pricePerUnit.toLocaleString('ru-RU')}</td>
+                                    <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
+                                  </tr>`;
+                }
+            });
+            if(showGroupTotal(group)) {
+                rowsHtml += `<tr style="background:#d9eaf5; border-top:2px solid #b0cce4;">
+                                <td colspan="3" style="padding:12px 8px; font-weight:800; color:#0a4c73;">${GROUP_TOTAL_LABEL[group]}</td>
+                                <td style="padding:12px 8px; text-align:right; font-weight:800; color:#0a4c73;">${(groupSums[group] || 0).toLocaleString('ru-RU')} ₽</td>
                               </tr>`;
-            } else {
-                const pricePerUnit = Math.round(row.price / (row.qty || 1));
-                rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                                <td style="padding:10px 8px; text-align:left;">${row.name}</td>
-                                <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
-                                <td style="padding:10px 8px; text-align:right; width:110px;">${row.unitText ? row.unitText : pricePerUnit.toLocaleString('ru-RU')}</td>
-                                <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
-                              </tr>`;
-                totalSum += row.sum;
             }
         });
         
         if(!isPriceMissing) {
-            rowsHtml += `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
-                            <td colspan="3" style="padding:12px 8px; font-weight:800; font-size:1rem;">ВСЕГО по спецификации:</td>
-                            <td style="padding:12px 8px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
+            rowsHtml += `<tr style="background:#eef3fc; border-top:3px solid #0a4c73;">
+                            <td colspan="3" style="padding:13px 8px; font-weight:800; font-size:1rem;">ИТОГО за всё (бассейн + оборудование):</td>
+                            <td style="padding:13px 8px; text-align:right; font-weight:800; font-size:1.15rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
                           </tr>`;
         } else {
             rowsHtml += `<tr style="background:#fff3e0; border-top:2px solid #ff9800;">
@@ -1382,21 +1444,31 @@
         lastSpec[shapeType] = { rows: rows, isPriceMissing: isPriceMissing, totalSum: totalSum, sizeText: sizeText };
         
         // Таблица для клиента: по каждому разделу только общая сумма
-        const clientCats = [];
-        rows.forEach(r => { if(!clientCats.includes(r.category)) clientCats.push(r.category); });
         let clientHtml = "";
-        clientCats.forEach(cat => {
-            const catRows = rows.filter(r => r.category === cat);
-            const missing = catRows.every(r => r.priceText === "цену уточняйте");
-            clientHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                              <td style="padding:11px 10px; text-align:left;">${clientSectionName(cat)}</td>
-                              <td style="padding:11px 10px; text-align:right; width:150px; font-weight:600; ${missing ? 'color:#e65100;' : ''}">${missing ? 'цену уточняйте' : (catSums[cat] || 0).toLocaleString('ru-RU') + ' ₽'}</td>
-                           </tr>`;
+        GROUP_ORDER.forEach(group => {
+            if(!groupCounts[group]) return;
+            clientHtml += `<tr style="background:#0a4c73;"><td colspan="2" style="padding:10px; font-weight:800; color:#ffffff; letter-spacing:1px;">${group}</td></tr>`;
+            const cats = [];
+            rows.filter(r => r.group === group).forEach(r => { if(!cats.includes(r.category)) cats.push(r.category); });
+            cats.forEach(cat => {
+                const catRows = rows.filter(r => r.category === cat);
+                const missing = catRows.every(r => r.priceText === "цену уточняйте");
+                clientHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
+                                  <td style="padding:11px 10px; text-align:left;">${clientSectionName(cat)}</td>
+                                  <td style="padding:11px 10px; text-align:right; width:150px; font-weight:600; ${missing ? 'color:#e65100;' : ''}">${missing ? 'цену уточняйте' : (catSums[cat] || 0).toLocaleString('ru-RU') + ' ₽'}</td>
+                               </tr>`;
+            });
+            if(showGroupTotal(group)) {
+                clientHtml += `<tr style="background:#d9eaf5; border-top:2px solid #b0cce4;">
+                                  <td style="padding:11px 10px; font-weight:800; color:#0a4c73;">${GROUP_TOTAL_LABEL[group]}</td>
+                                  <td style="padding:11px 10px; text-align:right; font-weight:800; color:#0a4c73;">${(groupSums[group] || 0).toLocaleString('ru-RU')} ₽</td>
+                               </tr>`;
+            }
         });
         clientHtml += isPriceMissing
             ? `<tr style="background:#fff3e0; border-top:2px solid #ff9800;"><td colspan="2" style="padding:12px 10px; text-align:center; font-weight:800; color:#e65100;">⚠️ Для выбранного размера цена уточняется у менеджера</td></tr>`
-            : `<tr style="background:#eef3fc; border-top:2px solid #c0d8ec;">
-                  <td style="padding:12px 10px; font-weight:800; font-size:1rem;">ИТОГО:</td>
+            : `<tr style="background:#eef3fc; border-top:3px solid #0a4c73;">
+                  <td style="padding:12px 10px; font-weight:800; font-size:1rem;">ИТОГО за всё:</td>
                   <td style="padding:12px 10px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
                </tr>`;
         
@@ -1499,6 +1571,9 @@
             const FONT = 'Arial';
             const thin = { style: 'thin', color: { argb: 'FF999999' } };
             const border = { top: thin, left: thin, bottom: thin, right: thin };
+            const fillOf = argb => ({ type: 'pattern', pattern: 'solid', fgColor: { argb: argb } });
+            const COLS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+            const GROUP_TOTAL = { 'БАССЕЙН': 'ИТОГО за бассейн', 'ОБОРУДОВАНИЕ': 'ИТОГО за оборудование' };
             const st = selectedState[shapeType];
             const vol = st.currentVolume || 0;
             
@@ -1517,67 +1592,105 @@
                 const c = headRow.getCell(i + 1);
                 c.value = h;
                 c.font = { name: FONT, size: 10, bold: true };
-                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
+                c.fill = fillOf('FFBDD7EE');
                 c.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
                 c.border = border;
             });
             headRow.height = 30;
             
-            // группировка по разделам в порядке появления
-            const groups = [];
-            spec.rows.forEach(r => {
-                let g = groups.find(x => x.name === r.category);
-                if (!g) { g = { name: r.category, rows: [] }; groups.push(g); }
-                g.rows.push(r);
-            });
+            // два блока: бассейн и оборудование; внутри - разделы
+            const blocks = ['БАССЕЙН', 'ОБОРУДОВАНИЕ'].map(gn => {
+                const secs = [];
+                spec.rows.filter(r => r.group === gn).forEach(r => {
+                    let sec = secs.find(x => x.name === r.category);
+                    if (!sec) { sec = { name: r.category, rows: [] }; secs.push(sec); }
+                    sec.rows.push(r);
+                });
+                return { name: gn, sections: secs };
+            }).filter(b => b.sections.length);
             
             let rowNum = 5;
-            const sectionRows = [];
-            groups.forEach(g => {
-                const secRow = rowNum++;
-                sectionRows.push(secRow);
-                ws.mergeCells(`A${secRow}:F${secRow}`);
-                const sc = ws.getCell(`A${secRow}`);
-                sc.value = g.name;
-                sc.font = { name: FONT, size: 11, bold: true };
-                sc.alignment = { horizontal: 'center', vertical: 'middle' };
-                sc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD9D9D9' } };
-                ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => { ws.getCell(`${col}${secRow}`).border = border; });
+            blocks.forEach(b => {
+                const gRow = rowNum++;
+                ws.mergeCells(`A${gRow}:G${gRow}`);
+                const gc = ws.getCell(`A${gRow}`);
+                gc.value = b.name;
+                gc.font = { name: FONT, size: 12, bold: true, color: { argb: 'FFFFFFFF' } };
+                gc.fill = fillOf('FF0A4C73');
+                gc.alignment = { horizontal: 'center', vertical: 'middle' };
+                ws.getRow(gRow).height = 22;
                 
-                const first = rowNum;
-                let secSum = 0;
-                g.rows.forEach((r, idx) => {
-                    const missing = r.priceText === 'цену уточняйте';
-                    const unitPrice = Math.round(r.price / (r.qty || 1));
-                    const row = ws.getRow(rowNum);
-                    row.getCell(1).value = idx + 1;
-                    row.getCell(2).value = r.name;
-                    if (missing) {
-                        row.getCell(3).value = 'цену уточняйте';
-                        row.getCell(5).value = '—';
-                    } else {
-                        row.getCell(3).value = unitPrice;
-                        row.getCell(5).value = { formula: `C${rowNum}*D${rowNum}`, result: r.sum };
-                        secSum += r.sum;
-                    }
-                    row.getCell(4).value = r.qty;
-                    row.getCell(6).value = r.unit || 'шт.';
-                    for (let c = 1; c <= 7; c++) {
-                        const cell = row.getCell(c);
-                        cell.font = { name: FONT, size: 10, color: missing && (c === 3 || c === 5) ? { argb: 'FFE65100' } : undefined };
-                        cell.border = border;
-                        cell.alignment = { vertical: 'middle', wrapText: c === 2, horizontal: c === 2 ? 'left' : (c === 1 || c === 4 || c === 6) ? 'center' : 'right' };
-                    }
-                    row.getCell(3).numberFormat = '#,##0';
-                    row.getCell(5).numberFormat = '#,##0';
-                    rowNum++;
+                b.secRows = [];
+                b.sum = 0;
+                b.sections.forEach(sec => {
+                    const secRow = rowNum++;
+                    sec.row = secRow;
+                    b.secRows.push(secRow);
+                    ws.mergeCells(`A${secRow}:F${secRow}`);
+                    const sc = ws.getCell(`A${secRow}`);
+                    sc.value = sec.name;
+                    sc.font = { name: FONT, size: 11, bold: true };
+                    sc.alignment = { horizontal: 'center', vertical: 'middle' };
+                    sc.fill = fillOf('FFD9D9D9');
+                    COLS.forEach(col => { ws.getCell(`${col}${secRow}`).border = border; });
+                    
+                    const first = rowNum;
+                    let secSum = 0;
+                    sec.rows.forEach((r, idx) => {
+                        const missing = r.priceText === 'цену уточняйте';
+                        const unitPrice = Math.round(r.price / (r.qty || 1));
+                        const row = ws.getRow(rowNum);
+                        row.getCell(1).value = idx + 1;
+                        row.getCell(2).value = r.name;
+                        if (missing) {
+                            row.getCell(3).value = 'цену уточняйте';
+                            row.getCell(5).value = '—';
+                        } else {
+                            row.getCell(3).value = unitPrice;
+                            row.getCell(5).value = { formula: `C${rowNum}*D${rowNum}`, result: r.sum };
+                            secSum += r.sum;
+                        }
+                        row.getCell(4).value = r.qty;
+                        row.getCell(6).value = r.unit || 'шт.';
+                        for (let c = 1; c <= 7; c++) {
+                            const cell = row.getCell(c);
+                            cell.font = { name: FONT, size: 10, color: missing && (c === 3 || c === 5) ? { argb: 'FFE65100' } : undefined };
+                            cell.border = border;
+                            cell.alignment = { vertical: 'middle', wrapText: c === 2, horizontal: c === 2 ? 'left' : (c === 1 || c === 4 || c === 6) ? 'center' : 'right' };
+                        }
+                        row.getCell(3).numberFormat = '#,##0';
+                        row.getCell(5).numberFormat = '#,##0';
+                        rowNum++;
+                    });
+                    const last = rowNum - 1;
+                    const secCell = ws.getCell(`G${secRow}`);
+                    secCell.value = { formula: `SUM(E${first}:E${last})`, result: secSum };
+                    secCell.numberFormat = '#,##0 "₽"';
+                    secCell.font = { name: FONT, size: 11, bold: true };
+                    secCell.alignment = { horizontal: 'right', vertical: 'middle' };
+                    b.sum += secSum;
                 });
-                const last = rowNum - 1;
-                const secCell = ws.getCell(`G${secRow}`);
-                secCell.value = { formula: `SUM(E${first}:E${last})`, result: secSum };
-                secCell.numberFormat = '#,##0 "₽"';
-                secCell.font = { name: FONT, size: 11, bold: true };
-                secCell.alignment = { horizontal: 'right', vertical: 'middle' };
+                
+                // итого за блок
+                const stRow = rowNum++;
+                b.subRow = stRow;
+                ws.mergeCells(`A${stRow}:F${stRow}`);
+                const sl = ws.getCell(`A${stRow}`);
+                sl.value = GROUP_TOTAL[b.name];
+                sl.font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
+                sl.alignment = { horizontal: 'right', vertical: 'middle' };
+                const sv = ws.getCell(`G${stRow}`);
+                if (b.name === 'БАССЕЙН' && spec.isPriceMissing) {
+                    sv.value = 'уточняется';
+                    sv.font = { name: FONT, size: 10, bold: true, color: { argb: 'FFE65100' } };
+                } else {
+                    sv.value = { formula: b.secRows.map(r => `G${r}`).join('+'), result: b.sum };
+                    sv.numberFormat = '#,##0 "₽"';
+                    sv.font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
+                }
+                sv.alignment = { horizontal: 'right', vertical: 'middle' };
+                COLS.forEach(col => { ws.getCell(`${col}${stRow}`).border = border; ws.getCell(`${col}${stRow}`).fill = fillOf('FFD9EAF5'); });
+                ws.getRow(stRow).height = 22;
             });
             
             const totalRow = rowNum;
@@ -1588,19 +1701,19 @@
                 tl.value = 'Для выбранного размера цена уточняется у менеджера';
                 tl.font = { name: FONT, size: 11, bold: true, color: { argb: 'FFE65100' } };
             } else {
-                tl.value = 'ИТОГО по спецификации';
+                tl.value = 'ИТОГО за всё (бассейн + оборудование)';
                 tl.font = { name: FONT, size: 12, bold: true };
-                tv.value = { formula: sectionRows.map(r => `G${r}`).join('+'), result: spec.totalSum };
+                tv.value = { formula: blocks.map(b => `G${b.subRow}`).join('+'), result: spec.totalSum };
                 tv.numberFormat = '#,##0 "₽"';
                 tv.font = { name: FONT, size: 12, bold: true, color: { argb: 'FF0A4C73' } };
             }
             tl.alignment = { horizontal: 'right', vertical: 'middle' };
             tv.alignment = { horizontal: 'right', vertical: 'middle' };
-            ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+            COLS.forEach(col => {
                 ws.getCell(`${col}${totalRow}`).border = border;
-                ws.getCell(`${col}${totalRow}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } };
+                ws.getCell(`${col}${totalRow}`).fill = fillOf('FFDDEBF7');
             });
-            ws.getRow(totalRow).height = 24;
+            ws.getRow(totalRow).height = 26;
             ws.views = [{ state: 'frozen', ySplit: 4 }];
             
             // Второй лист: таблица для клиента (по разделам, только суммы)
@@ -1614,39 +1727,61 @@
             ['Раздел', 'Сумма, руб.'].forEach((h, i) => {
                 const c = wc.getRow(3).getCell(i + 1);
                 c.value = h; c.font = { name: FONT, size: 10, bold: true };
-                c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFBDD7EE' } };
+                c.fill = fillOf('FFBDD7EE');
                 c.alignment = { horizontal: i === 0 ? 'left' : 'right', vertical: 'middle' };
                 c.border = border;
             });
             let cr = 4;
-            groups.forEach((g, gi) => {
-                const missing = g.rows.every(r => r.priceText === 'цену уточняйте');
-                const secSum = g.rows.reduce((sum, r) => sum + (r.priceText === 'цену уточняйте' ? 0 : r.sum), 0);
-                wc.getCell(`A${cr}`).value = clientSectionName(g.name);
-                if (missing) {
-                    wc.getCell(`B${cr}`).value = 'цену уточняйте';
-                    wc.getCell(`B${cr}`).font = { name: FONT, size: 10, color: { argb: 'FFE65100' } };
+            blocks.forEach(b => {
+                wc.mergeCells(`A${cr}:B${cr}`);
+                wc.getCell(`A${cr}`).value = b.name;
+                wc.getCell(`A${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
+                wc.getCell(`A${cr}`).fill = fillOf('FF0A4C73');
+                wc.getCell(`A${cr}`).alignment = { horizontal: 'center' };
+                cr++;
+                const first = cr;
+                b.sections.forEach(sec => {
+                    const missing = sec.rows.every(r => r.priceText === 'цену уточняйте');
+                    const secSum = sec.rows.reduce((sum, r) => sum + (r.priceText === 'цену уточняйте' ? 0 : r.sum), 0);
+                    wc.getCell(`A${cr}`).value = clientSectionName(sec.name);
+                    wc.getCell(`A${cr}`).font = { name: FONT, size: 10 };
+                    if (missing) {
+                        wc.getCell(`B${cr}`).value = 'цену уточняйте';
+                        wc.getCell(`B${cr}`).font = { name: FONT, size: 10, color: { argb: 'FFE65100' } };
+                    } else {
+                        wc.getCell(`B${cr}`).value = { formula: `'Спецификация'!G${sec.row}`, result: secSum };
+                        wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
+                        wc.getCell(`B${cr}`).font = { name: FONT, size: 10 };
+                    }
+                    wc.getCell(`A${cr}`).border = border; wc.getCell(`B${cr}`).border = border;
+                    wc.getCell(`B${cr}`).alignment = { horizontal: 'right' };
+                    cr++;
+                });
+                b.clientSubRow = cr;
+                wc.getCell(`A${cr}`).value = GROUP_TOTAL[b.name];
+                wc.getCell(`A${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
+                if (b.name === 'БАССЕЙН' && spec.isPriceMissing) {
+                    wc.getCell(`B${cr}`).value = 'уточняется';
+                    wc.getCell(`B${cr}`).font = { name: FONT, size: 10, bold: true, color: { argb: 'FFE65100' } };
                 } else {
-                    wc.getCell(`B${cr}`).value = { formula: `'Спецификация'!G${sectionRows[gi]}`, result: secSum };
+                    wc.getCell(`B${cr}`).value = { formula: `SUM(B${first}:B${cr - 1})`, result: b.sum };
                     wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
-                    wc.getCell(`B${cr}`).font = { name: FONT, size: 10 };
+                    wc.getCell(`B${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
                 }
-                wc.getCell(`A${cr}`).font = { name: FONT, size: 10 };
-                wc.getCell(`A${cr}`).border = border; wc.getCell(`B${cr}`).border = border;
                 wc.getCell(`B${cr}`).alignment = { horizontal: 'right' };
+                ['A', 'B'].forEach(col => { wc.getCell(`${col}${cr}`).border = border; wc.getCell(`${col}${cr}`).fill = fillOf('FFD9EAF5'); });
                 cr++;
             });
-            wc.getCell(`A${cr}`).border = border; wc.getCell(`B${cr}`).border = border;
-            ['A', 'B'].forEach(col => { wc.getCell(`${col}${cr}`).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFDDEBF7' } }; });
+            ['A', 'B'].forEach(col => { wc.getCell(`${col}${cr}`).border = border; wc.getCell(`${col}${cr}`).fill = fillOf('FFDDEBF7'); });
             if (spec.isPriceMissing) {
                 wc.mergeCells(`A${cr}:B${cr}`);
                 wc.getCell(`A${cr}`).value = 'Для выбранного размера цена уточняется у менеджера';
                 wc.getCell(`A${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FFE65100' } };
                 wc.getCell(`A${cr}`).alignment = { horizontal: 'center' };
             } else {
-                wc.getCell(`A${cr}`).value = 'ИТОГО';
+                wc.getCell(`A${cr}`).value = 'ИТОГО за всё';
                 wc.getCell(`A${cr}`).font = { name: FONT, size: 12, bold: true };
-                wc.getCell(`B${cr}`).value = { formula: `SUM(B4:B${cr - 1})`, result: spec.totalSum };
+                wc.getCell(`B${cr}`).value = { formula: blocks.map(b => `B${b.clientSubRow}`).join('+'), result: spec.totalSum };
                 wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
                 wc.getCell(`B${cr}`).font = { name: FONT, size: 12, bold: true, color: { argb: 'FF0A4C73' } };
                 wc.getCell(`B${cr}`).alignment = { horizontal: 'right' };
@@ -1677,6 +1812,7 @@
         for(let id of state.equip) extra += getFilterPrice(shapeType, id);
         for(let id of state.heat) extra += getHeatItem(shapeType, id).price;
         for(let id of state.chlor) extra += getChlorPrice(shapeType, id);
+        for(let id of state.tech) extra += getTechItem(shapeType, id).price;
         
         for(let id of state.stairs) {
             const price = getStairsPrice(shapeType, id, state.width);
@@ -2215,6 +2351,7 @@
             renderFilter(sh);
             renderHeat(sh);
             renderChlor(sh);
+            renderTech(sh);
             reRenderMount(sh);
             renderStairs(sh);
             renderEmbed(sh);
@@ -2240,6 +2377,7 @@
                 renderFilter(sh);
             renderHeat(sh);
             renderChlor(sh);
+            renderTech(sh);
                 if(sh === 'rect') renderRadius(sh);
                 if(sh === 'circle') renderEdge(sh);
                 updateVolume(sh);
