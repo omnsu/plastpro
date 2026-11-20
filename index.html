@@ -249,6 +249,18 @@
         .price-btn.selected { background: #2c7cb6; border-color: #0e4b75; color: white; }
         .price-btn:hover { background: #e5f0fa; transform: translateY(-2px); }
         
+        /* Сборка оборудования: кнопки с выпадающими списками */
+        .asm-group { margin-bottom: 10px; }
+        .asm-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+        .asm-arrow { margin-left: 12px; font-size: 0.9rem; }
+        .asm-list { margin-top: 6px; border: 1px solid #cde0f0; border-radius: 18px; overflow: hidden; background: #ffffff; animation: asmDrop 0.18s ease-out; }
+        .asm-opt { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 11px 18px; cursor: pointer; border-bottom: 1px solid #e0ecf5; transition: 0.15s; }
+        .asm-opt:last-child { border-bottom: none; }
+        .asm-opt:hover { background: #eef6fc; }
+        .asm-opt.selected { background: #2c7cb6; color: #ffffff; }
+        .asm-opt b { white-space: nowrap; }
+        @keyframes asmDrop { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        
         /* Кнопка скачивания спецификации */
         .spec-download-btn { background: #2c7cb6; color: white; border: none; border-radius: 30px; padding: 11px 24px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: 0.2s; }
         .spec-download-btn:hover:not(:disabled) { background: #1b668f; }
@@ -539,6 +551,7 @@
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="rectEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="rectHeatGroup"></div></div>
             <div class="section"><h3>🧪 Хлордозация</h3><div class="option-group" id="rectChlorGroup"></div></div>
+            <div class="section"><h3>🛠️ Сборка оборудования</h3><div id="rectAssemblyGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="rectTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -602,6 +615,7 @@
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="circleEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="circleHeatGroup"></div></div>
             <div class="section"><h3>🧪 Хлордозация</h3><div class="option-group" id="circleChlorGroup"></div></div>
+            <div class="section"><h3>🛠️ Сборка оборудования</h3><div id="circleAssemblyGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="circleTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -671,6 +685,7 @@
             <div class="section"><h3>💧 Фильтрация</h3><div class="option-group" id="ovalEquipGroup"></div></div>
             <div class="section"><h3>🔥 Подогрев воды</h3><div class="option-group" id="ovalHeatGroup"></div></div>
             <div class="section"><h3>🧪 Хлордозация</h3><div class="option-group" id="ovalChlorGroup"></div></div>
+            <div class="section"><h3>🛠️ Сборка оборудования</h3><div id="ovalAssemblyGroup"></div></div>
             
             <div class="total-cost">💰 ИТОГО: <span id="ovalTotalCost">0</span> ₽</div>
             <div class="total-disclaimer">
@@ -838,7 +853,9 @@
         pipe_pvc: 330, pipe_ball_valve: 1250, pipe_coupling: 390, pipe_nipple: 110, pipe_elbow45: 130,
         pipe_elbow90: 125, pipe_tee: 190, pipe_check_valve: 1250, pipe_holder: 35, pipe_glue: 1250,
         chlor_dosator: 9500,
-        tech_room: 35000, tech_box: 16000
+        tech_room: 35000, tech_box: 16000,
+        asm_shop_filter: 25000, asm_shop_exch: 45000, asm_shop_pump: 35000,
+        asm_site_filter: 35000, asm_site_exch: 55000, asm_site_pump: 45000
     };
     function eqPrice(shapeType, key) {
         const t = getOptionPrice(shapeType, key);
@@ -943,6 +960,67 @@
                 updateTotalAndSpec(shapeType);
             };
             c.appendChild(btn);
+        });
+    }
+    
+    // ========== СБОРКА ОБОРУДОВАНИЯ ==========
+    // Две кнопки с выпадающими списками. Выбрать можно один вариант из всех шести.
+    const assemblyGroups = [
+        { id: 'shop', title: '🏭 Сборка в цеху', suffix: 'в цеху', items: [
+            { id: 'asm_shop_filter', name: 'Сборка фильтрационного оборудования' },
+            { id: 'asm_shop_exch', name: 'Сборка фильтрационного оборудования с теплообменником' },
+            { id: 'asm_shop_pump', name: 'Сборка фильтрационного оборудования с тепловым насосом' }
+        ] },
+        { id: 'site', title: '🏗️ Сборка на объекте заказчика', suffix: 'на объекте заказчика', items: [
+            { id: 'asm_site_filter', name: 'Сборка фильтрационного оборудования' },
+            { id: 'asm_site_exch', name: 'Сборка фильтрационного оборудования с теплообменником' },
+            { id: 'asm_site_pump', name: 'Сборка фильтрационного оборудования с тепловым насосом' }
+        ] }
+    ];
+    function getAssemblyItem(shapeType, id) {
+        for (const g of assemblyGroups) {
+            const it = g.items.find(i => i.id === id);
+            if (it) return { id: id, name: `${it.name} (${g.suffix})`, price: eqPrice(shapeType, id) };
+        }
+        return null;
+    }
+    function renderAssembly(shapeType) {
+        const container = document.getElementById(`${shapeType}AssemblyGroup`);
+        if (!container) return;
+        const state = selectedState[shapeType];
+        container.innerHTML = '';
+        assemblyGroups.forEach(g => {
+            const wrap = document.createElement('div');
+            wrap.className = 'asm-group';
+            const chosen = g.items.find(i => i.id === state.assembly);
+            const isOpen = state.asmOpen === g.id;
+            
+            const toggle = document.createElement('div');
+            toggle.className = 'price-btn asm-toggle' + (chosen ? ' selected' : '');
+            toggle.innerHTML = `<span>${g.title}${chosen ? ' · ' + eqPrice(shapeType, chosen.id).toLocaleString('ru-RU') + ' ₽' : ''}</span><span class="asm-arrow">${isOpen ? '▴' : '▾'}</span>`;
+            toggle.onclick = () => {
+                state.asmOpen = isOpen ? null : g.id;
+                renderAssembly(shapeType);
+            };
+            wrap.appendChild(toggle);
+            
+            if (isOpen) {
+                const list = document.createElement('div');
+                list.className = 'asm-list';
+                g.items.forEach(it => {
+                    const row = document.createElement('div');
+                    row.className = 'asm-opt' + (state.assembly === it.id ? ' selected' : '');
+                    row.innerHTML = `<span>${it.name}</span><b>${eqPrice(shapeType, it.id).toLocaleString('ru-RU')} ₽</b>`;
+                    row.onclick = () => {
+                        state.assembly = (state.assembly === it.id) ? null : it.id;
+                        renderAssembly(shapeType);
+                        updateTotalAndSpec(shapeType);
+                    };
+                    list.appendChild(row);
+                });
+                wrap.appendChild(list);
+            }
+            container.appendChild(wrap);
         });
     }
     
@@ -1118,9 +1196,9 @@
     
     // ========== СОСТОЯНИЕ ВЫБРАННЫХ ОПЦИЙ ==========
     const selectedState = {
-        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
-        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
-        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
+        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
+        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
+        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
     };
     
     // ========== ЗАГРУЗКА ЦЕН ИЗ GOOGLE SHEETS ==========
@@ -1360,16 +1438,17 @@
         if(selectedHeat.length) selectedHeat.forEach(item => addLines(item.lines, "ПОДОГРЕВ ВОДЫ"));
         if(lightCount > 0) addLines(getLightLines(shapeType), "ОСВЕЩЕНИЕ");
         if(selectedChlor.length) selectedChlor.forEach(item => addLines(getChlorLines(shapeType, item.id), "ХЛОРДОЗАЦИЯ"));
+        if(state.assembly) { const asm = getAssemblyItem(shapeType, state.assembly); addItem({ name: asm.name, qty: 1, unit: 'шт.' }, "СБОРКА ОБОРУДОВАНИЯ", asm.price); }
         
         const container = document.getElementById(`${shapeType}SpecTable`);
         if(!container) return;
         
-        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedChlor.length && !selectedTech.length && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
+        if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedChlor.length && !selectedTech.length && !state.assembly && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
             container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
             return;
         }
         
-        const EQUIP_CATS = ["ФИЛЬТРАЦИЯ", "ТРУБЫ И ФИТИНГИ", "ПОДОГРЕВ ВОДЫ", "ОСВЕЩЕНИЕ", "ХЛОРДОЗАЦИЯ"];
+        const EQUIP_CATS = ["ФИЛЬТРАЦИЯ", "ТРУБЫ И ФИТИНГИ", "ПОДОГРЕВ ВОДЫ", "ОСВЕЩЕНИЕ", "ХЛОРДОЗАЦИЯ", "СБОРКА ОБОРУДОВАНИЯ"];
         rows.forEach(r => { r.group = EQUIP_CATS.includes(r.category) ? "ОБОРУДОВАНИЕ" : "БАССЕЙН"; });
         const GROUP_ORDER = ["БАССЕЙН", "ОБОРУДОВАНИЕ"];
         const GROUP_TOTAL_LABEL = { "БАССЕЙН": "ИТОГО за бассейн:", "ОБОРУДОВАНИЕ": "ИТОГО за оборудование:" };
@@ -1430,7 +1509,7 @@
         
         if(!isPriceMissing) {
             rowsHtml += `<tr style="background:#eef3fc; border-top:3px solid #0a4c73;">
-                            <td colspan="3" style="padding:13px 8px; font-weight:800; font-size:1rem;">ИТОГО за всё (бассейн + оборудование):</td>
+                            <td colspan="3" style="padding:13px 8px; font-weight:800; font-size:1rem;">ИТОГО (бассейн + оборудование):</td>
                             <td style="padding:13px 8px; text-align:right; font-weight:800; font-size:1.15rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
                           </tr>`;
         } else {
@@ -1468,7 +1547,7 @@
         clientHtml += isPriceMissing
             ? `<tr style="background:#fff3e0; border-top:2px solid #ff9800;"><td colspan="2" style="padding:12px 10px; text-align:center; font-weight:800; color:#e65100;">⚠️ Для выбранного размера цена уточняется у менеджера</td></tr>`
             : `<tr style="background:#eef3fc; border-top:3px solid #0a4c73;">
-                  <td style="padding:12px 10px; font-weight:800; font-size:1rem;">ИТОГО за всё:</td>
+                  <td style="padding:12px 10px; font-weight:800; font-size:1rem;">ИТОГО (бассейн + оборудование):</td>
                   <td style="padding:12px 10px; text-align:right; font-weight:800; font-size:1.1rem; color:#0a4c73;">${totalSum.toLocaleString('ru-RU')} ₽</td>
                </tr>`;
         
@@ -1701,7 +1780,7 @@
                 tl.value = 'Для выбранного размера цена уточняется у менеджера';
                 tl.font = { name: FONT, size: 11, bold: true, color: { argb: 'FFE65100' } };
             } else {
-                tl.value = 'ИТОГО за всё (бассейн + оборудование)';
+                tl.value = 'ИТОГО (бассейн + оборудование)';
                 tl.font = { name: FONT, size: 12, bold: true };
                 tv.value = { formula: blocks.map(b => `G${b.subRow}`).join('+'), result: spec.totalSum };
                 tv.numberFormat = '#,##0 "₽"';
@@ -1779,7 +1858,7 @@
                 wc.getCell(`A${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FFE65100' } };
                 wc.getCell(`A${cr}`).alignment = { horizontal: 'center' };
             } else {
-                wc.getCell(`A${cr}`).value = 'ИТОГО за всё';
+                wc.getCell(`A${cr}`).value = 'ИТОГО (бассейн + оборудование)';
                 wc.getCell(`A${cr}`).font = { name: FONT, size: 12, bold: true };
                 wc.getCell(`B${cr}`).value = { formula: blocks.map(b => `B${b.clientSubRow}`).join('+'), result: spec.totalSum };
                 wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
@@ -1813,6 +1892,7 @@
         for(let id of state.heat) extra += getHeatItem(shapeType, id).price;
         for(let id of state.chlor) extra += getChlorPrice(shapeType, id);
         for(let id of state.tech) extra += getTechItem(shapeType, id).price;
+        if(state.assembly) extra += getAssemblyItem(shapeType, state.assembly).price;
         
         for(let id of state.stairs) {
             const price = getStairsPrice(shapeType, id, state.width);
@@ -2352,6 +2432,7 @@
             renderHeat(sh);
             renderChlor(sh);
             renderTech(sh);
+            renderAssembly(sh);
             reRenderMount(sh);
             renderStairs(sh);
             renderEmbed(sh);
@@ -2378,6 +2459,7 @@
             renderHeat(sh);
             renderChlor(sh);
             renderTech(sh);
+            renderAssembly(sh);
                 if(sh === 'rect') renderRadius(sh);
                 if(sh === 'circle') renderEdge(sh);
                 updateVolume(sh);
