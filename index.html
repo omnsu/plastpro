@@ -249,6 +249,10 @@
         .price-btn.selected { background: #2c7cb6; border-color: #0e4b75; color: white; }
         .price-btn:hover { background: #e5f0fa; transform: translateY(-2px); }
         
+        /* Толщина стенок */
+        .thickness-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+        .thickness-label { font-weight: 600; color: #1a5d83; }
+        
         /* Сборка оборудования: кнопки с выпадающими списками */
         .asm-group { margin-bottom: 10px; }
         .asm-toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
@@ -537,6 +541,7 @@
                     </div>
                     <div>Высота 1.5 м</div>
                 </div>
+                <div class="thickness-row"><span class="thickness-label">Толщина стенок и дна:</span><div class="option-group" id="rectThicknessGroup"></div></div>
                 <div id="rectVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="rectWarning" style="min-height: 60px;"></div>
             </div>
@@ -559,7 +564,7 @@
                 Более подробную информацию уточняйте у менеджеров.
             </div>
             
-            <div class="spec-table" id="rectSpecTable"><h4>📋 Спецификация для заказа (скриншот для менеджера)</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
+            <div class="spec-table" id="rectSpecTable"><h4>📋 Коммерческое предложение</h4><div class="empty-spec">Выберите позиции, чтобы сформировать коммерческое предложение</div></div>
             <button class="back-home">← На главную</button>
         </div>
     </div>
@@ -600,6 +605,7 @@
                     </div>
                     <div>Высота 1.5 м</div>
                 </div>
+                <div class="thickness-row"><span class="thickness-label">Толщина стенок и дна:</span><div class="option-group" id="circleThicknessGroup"></div></div>
                 <div id="circleVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="circleWarning" style="min-height: 60px;"></div>
             </div>
@@ -623,7 +629,7 @@
                 Более подробную информацию уточняйте у менеджеров.
             </div>
             
-            <div class="spec-table" id="circleSpecTable"><h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
+            <div class="spec-table" id="circleSpecTable"><h4>📋 Коммерческое предложение</h4><div class="empty-spec">Выберите позиции, чтобы сформировать коммерческое предложение</div></div>
             <button class="back-home">← На главную</button>
         </div>
     </div>
@@ -672,6 +678,7 @@
                     </div>
                     <div>Высота 1.5 м</div>
                 </div>
+                <div class="thickness-row"><span class="thickness-label">Толщина стенок и дна:</span><div class="option-group" id="ovalThicknessGroup"></div></div>
                 <div id="ovalVolumeInfo" style="font-size:0.75rem;"></div>
                 <div id="ovalWarning" style="min-height: 60px;"></div>
             </div>
@@ -693,7 +700,7 @@
                 Более подробную информацию уточняйте у менеджеров.
             </div>
             
-            <div class="spec-table" id="ovalSpecTable"><h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div></div>
+            <div class="spec-table" id="ovalSpecTable"><h4>📋 Коммерческое предложение</h4><div class="empty-spec">Выберите позиции, чтобы сформировать коммерческое предложение</div></div>
             <button class="back-home">← На главную</button>
         </div>
     </div>
@@ -756,7 +763,7 @@
     const stairsCatalog = [
         { 
             id: "stairs_bench_full", 
-            name: "Лестница во всю ширину со ступенью", 
+            name: "Лавочка во всю ширину со ступенью", 
             description: "Вторая ступень +6.000 руб",
             image: "stairs_bench.png",
             installType: "Самостоятельно стоящая",
@@ -1196,9 +1203,9 @@
     
     // ========== СОСТОЯНИЕ ВЫБРАННЫХ ОПЦИЙ ==========
     const selectedState = {
-        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
-        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
-        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
+        rect: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, thickness: 5, stairs: new Set(), embed: new Set(), embedCount: 0, radius: new Set(), length: 3, width: 2, currentVolume: 0 },
+        circle: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, thickness: 5, stairs: new Set(), embed: new Set(), embedCount: 0, edge: new Set(), diameter: 3, currentVolume: 0 },
+        oval: { mount: new Set(), lightCount: 0, equip: new Set(), heat: new Set(), chlor: new Set(), tech: new Set(), assembly: null, asmOpen: null, thickness: 5, stairs: new Set(), embed: new Set(), embedCount: 0, length: 4, width: 2.5, currentVolume: 0 }
     };
     
     // ========== ЗАГРУЗКА ЦЕН ИЗ GOOGLE SHEETS ==========
@@ -1271,7 +1278,36 @@
     }
     
     // ========== ПОЛУЧЕНИЕ ЦЕНЫ ЧАШИ БАССЕЙНА ==========
+    // Толщина 8 мм: цена чаши умножается на 1.38
+    const THICKNESS_8_FACTOR = 1.38;
     function getBasePrice(shapeType) {
+        const raw = getBasePriceRaw(shapeType);
+        if (raw > 0 && selectedState[shapeType].thickness === 8) return Math.round(raw * THICKNESS_8_FACTOR);
+        return raw;
+    }
+    function getThicknessText(shapeType) {
+        const t = selectedState[shapeType].thickness === 8 ? 8 : 5;
+        return `Изготовление бассейна из полипропилена (стены и дно ${t} мм, ребра жесткости 8 мм)`;
+    }
+    function renderThickness(shapeType) {
+        const c = document.getElementById(`${shapeType}ThicknessGroup`);
+        if (!c) return;
+        const state = selectedState[shapeType];
+        c.innerHTML = '';
+        [5, 8].forEach(t => {
+            const btn = document.createElement('div');
+            btn.className = 'price-btn' + (state.thickness === t ? ' selected' : '');
+            btn.textContent = `${t} мм`;
+            btn.onclick = () => {
+                state.thickness = t;
+                renderThickness(shapeType);
+                updateTotalAndSpec(shapeType);
+            };
+            c.appendChild(btn);
+        });
+    }
+    
+    function getBasePriceRaw(shapeType) {
         const state = selectedState[shapeType];
         if (shapeType === 'rect' || shapeType === 'oval') {  // овальный = цены прямоугольного
             const key = `${state.length}x${state.width}`;
@@ -1402,9 +1438,9 @@
         let rows = [];
         
         if(isPriceMissing) {
-            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:0, qty:1, sum:0, priceText:"цену уточняйте"});
+            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:0, qty:1, sum:0, priceText:"цену уточняйте", note: getThicknessText(shapeType)});
         } else {
-            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:displayPrice, qty:1, sum:displayPrice});
+            rows.push({category:"ЧАША БАССЕЙНА", name:`Бассейн ${shapeType==='rect'?'прямоугольный':shapeType==='circle'?'круглый':'овальный'} ${sizeText}`, price:displayPrice, qty:1, sum:displayPrice, note: getThicknessText(shapeType)});
         }
         
         const addItem = (item, cat, price) => { 
@@ -1444,7 +1480,7 @@
         if(!container) return;
         
         if(rows.length === 1 && !isPriceMissing && !selectedMount.length && !(lightCount > 0) && !selectedEquip.length && !selectedHeat.length && !selectedChlor.length && !selectedTech.length && !state.assembly && !selectedStairs.length && !selectedEmbed.length && (shapeType!=='rect' || !state.radius.has(radiusItem.id)) && (shapeType!=='circle' || !state.edge.has(edgeItem.id))) {
-            container.innerHTML = `<h4>📋 Спецификация для заказа</h4><div class="empty-spec">Выберите позиции, чтобы сформировать накладную</div>`;
+            container.innerHTML = `<h4>📋 Коммерческое предложение</h4><div class="empty-spec">Выберите позиции, чтобы сформировать коммерческое предложение</div>`;
             return;
         }
         
@@ -1484,7 +1520,7 @@
                 
                 if(row.priceText === "цену уточняйте") {
                     rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                                    <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                    <td style="padding:10px 8px; text-align:left;">${row.name}${row.note ? '<div style="font-size:0.8rem; color:#5a7f99; margin-top:3px;">' + row.note + '</div>' : ''}</td>
                                     <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
                                     <td style="padding:10px 8px; text-align:right; width:110px; color:#e65100; font-weight:600;">цену уточняйте</td>
                                     <td style="padding:10px 8px; text-align:right; width:120px; color:#e65100; font-weight:600;">—</td>
@@ -1492,7 +1528,7 @@
                 } else {
                     const pricePerUnit = Math.round(row.price / (row.qty || 1));
                     rowsHtml += `<tr style="border-bottom:1px solid #e0ecf5;">
-                                    <td style="padding:10px 8px; text-align:left;">${row.name}</td>
+                                    <td style="padding:10px 8px; text-align:left;">${row.name}${row.note ? '<div style="font-size:0.8rem; color:#5a7f99; margin-top:3px;">' + row.note + '</div>' : ''}</td>
                                     <td style="padding:10px 8px; text-align:center; width:70px;">${row.qty} ${row.unit || 'шт'}</td>
                                     <td style="padding:10px 8px; text-align:right; width:110px;">${row.unitText ? row.unitText : pricePerUnit.toLocaleString('ru-RU')}</td>
                                     <td style="padding:10px 8px; text-align:right; width:120px; font-weight:600;">${row.sum.toLocaleString('ru-RU')}</td>
@@ -1552,7 +1588,7 @@
                </tr>`;
         
         container.innerHTML = `
-            <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Спецификация для заказа (скриншот для менеджера)</h4>
+            <h4 style="margin:0 0 12px 0; font-size:1.1rem;">📋 Коммерческое предложение</h4>
             <div style="overflow-x:auto;">
                 <table style="width:100%; border-collapse:collapse; background:white; border-radius:16px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
                     <thead style="background:#d9eaf5; border-bottom:2px solid #b0cce4;">
@@ -1580,7 +1616,7 @@
                 </table>
             </div>
             <div style="margin-top:14px; text-align:right;">
-                <button type="button" class="spec-download-btn">⬇️ Скачать спецификацию в Excel</button>
+                <button type="button" class="spec-download-btn">⬇️ Скачать коммерческое предложение в Excel</button>
             </div>
         `;
         const dlBtn = container.querySelector('.spec-download-btn');
@@ -1612,7 +1648,7 @@
     function specFileName(shapeType) {
         const st = selectedState[shapeType];
         const size = shapeType === 'circle' ? `d${st.diameter}` : `${st.length}x${st.width}`;
-        return `Спецификация_${SHAPE_NAMES[shapeType]}_${size}`;
+        return `Коммерческое_предложение_${SHAPE_NAMES[shapeType]}_${size}`;
     }
     
     function saveBlob(blob, fileName) {
@@ -1645,7 +1681,7 @@
         try {
             const ExcelJS = await loadExcelJS();
             const wb = new ExcelJS.Workbook();
-            const ws = wb.addWorksheet('Спецификация', { pageSetup: { orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
+            const ws = wb.addWorksheet('Коммерческое предложение', { pageSetup: { orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 } });
             ws.columns = [{ width: 5 }, { width: 72 }, { width: 13 }, { width: 9 }, { width: 15 }, { width: 9 }, { width: 18 }];
             const FONT = 'Arial';
             const thin = { style: 'thin', color: { argb: 'FF999999' } };
@@ -1657,7 +1693,7 @@
             const vol = st.currentVolume || 0;
             
             ws.mergeCells('A1:G1');
-            ws.getCell('A1').value = `Спецификация для заказа: бассейн ${SHAPE_NAMES[shapeType]} ${spec.sizeText}`;
+            ws.getCell('A1').value = `Коммерческое предложение: бассейн ${SHAPE_NAMES[shapeType]} ${spec.sizeText}`;
             ws.getCell('A1').font = { name: FONT, size: 14, bold: true, color: { argb: 'FF1F4E78' } };
             ws.getCell('A1').alignment = { horizontal: 'center', vertical: 'middle' };
             ws.getRow(1).height = 26;
@@ -1720,7 +1756,8 @@
                         const unitPrice = Math.round(r.price / (r.qty || 1));
                         const row = ws.getRow(rowNum);
                         row.getCell(1).value = idx + 1;
-                        row.getCell(2).value = r.name;
+                        row.getCell(2).value = r.note ? r.name + '\n' + r.note : r.name;
+                        if (r.note) row.height = 34;
                         if (missing) {
                             row.getCell(3).value = 'цену уточняйте';
                             row.getCell(5).value = '—';
@@ -1828,7 +1865,7 @@
                         wc.getCell(`B${cr}`).value = 'цену уточняйте';
                         wc.getCell(`B${cr}`).font = { name: FONT, size: 10, color: { argb: 'FFE65100' } };
                     } else {
-                        wc.getCell(`B${cr}`).value = { formula: `'Спецификация'!G${sec.row}`, result: secSum };
+                        wc.getCell(`B${cr}`).value = { formula: `'Коммерческое предложение'!G${sec.row}`, result: secSum };
                         wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
                         wc.getCell(`B${cr}`).font = { name: FONT, size: 10 };
                     }
@@ -1873,7 +1910,7 @@
             console.error('Excel export failed:', e);
             downloadSpecCsv(shapeType, spec);
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = '⬇️ Скачать спецификацию в Excel'; }
+            if (btn) { btn.disabled = false; btn.textContent = '⬇️ Скачать коммерческое предложение в Excel'; }
         }
     }
     
@@ -2433,6 +2470,7 @@
             renderChlor(sh);
             renderTech(sh);
             renderAssembly(sh);
+            renderThickness(sh);
             reRenderMount(sh);
             renderStairs(sh);
             renderEmbed(sh);
@@ -2460,6 +2498,7 @@
             renderChlor(sh);
             renderTech(sh);
             renderAssembly(sh);
+            renderThickness(sh);
                 if(sh === 'rect') renderRadius(sh);
                 if(sh === 'circle') renderEdge(sh);
                 updateVolume(sh);
