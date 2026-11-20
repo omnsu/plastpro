@@ -848,7 +848,8 @@
     const filterItems = [
         { name: "Фильтровальная установка (бочка + насос)", qty: 1, id: "filter_unit", category: "Фильтрация" },
         { name: "Скиммер 1 шт, форсунки 2 шт с установкой", qty: 1, id: "filter_set", category: "Фильтрация" },
-        { name: "Трубы и фитинги", qty: 1, id: "pipes", category: "Трубы и фитинги" }
+        { name: "Трубы и фитинги", qty: 1, id: "pipes", category: "Трубы и фитинги" },
+        { name: "Фильтрация на шлангах", qty: 1, id: "hose", category: "Фильтрация на шлангах" }  // только круглый
     ];
     // Цены оборудования (из таблицы, shape = all). Если строки в таблице нет - берётся значение по умолчанию.
     const EQ_DEFAULTS = {
@@ -861,6 +862,7 @@
         pipe_elbow90: 125, pipe_tee: 190, pipe_check_valve: 1250, pipe_holder: 35, pipe_glue: 1250,
         chlor_dosator: 9500,
         tech_room: 35000, tech_box: 16000,
+        hose_skimmer: 4700, hose_nozzle: 1250, hose_install: 2000, hose_pipe: 450, hose_adapter: 650, hose_clamp: 100,
         asm_shop_filter: 25000, asm_shop_exch: 45000, asm_shop_pump: 35000,
         asm_site_filter: 35000, asm_site_exch: 55000, asm_site_pump: 45000
     };
@@ -1090,6 +1092,16 @@
                 eqLine(shapeType, 'Скиммер универсальный из ABS-пластика Emaux', 'filter_skimmer', 1, 'шт.'),
                 eqLine(shapeType, 'Форсунка универсальная стеновая Aquaviva', 'filter_nozzle', 2, 'шт.'),
                 eqLine(shapeType, 'Установка закладной детали', 'filter_install', 3, 'шт.')
+            ];
+        }
+        if (id === 'hose') {
+            return [
+                eqLine(shapeType, 'Скиммер универсальный из ABS-пластика Emaux', 'hose_skimmer', 1, 'шт.'),
+                eqLine(shapeType, 'Форсунка универсальная стеновая Aquaviva', 'hose_nozzle', 1, 'шт.'),
+                eqLine(shapeType, 'Установка закладной детали', 'hose_install', 2, 'шт.'),
+                eqLine(shapeType, 'Шланг', 'hose_pipe', 6, 'м.п.'),
+                eqLine(shapeType, 'Переходник', 'hose_adapter', 2, 'шт.'),
+                eqLine(shapeType, 'Хомуты', 'hose_clamp', 4, 'шт.')
             ];
         }
         if (id === 'pipes') {
@@ -1451,26 +1463,26 @@
         const selectedTech = techItems.filter(i => state.tech.has(i.id)).map(i => getTechItem(shapeType, i.id));
         
         // ----- БАССЕЙН: чаша, радиусные углы, лестница, (круглый: закладные, борт), армирование, утепление, тех. помещение -----
-        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "РАДИУСНЫЕ УГЛЫ", getRadiusPrice());
-        if(selectedStairs.length) selectedStairs.forEach(item => addItem(item, "ЛЕСТНИЦА", item.price));
-        if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ЗАКЛАДНЫЕ ДЕТАЛИ", item.price));
+        if(shapeType === 'rect' && state.radius.has(radiusItem.id)) addItem(radiusItem, "ДОПОЛНИТЕЛЬНО", getRadiusPrice());
+        if(selectedStairs.length) selectedStairs.forEach(item => addItem({ ...item, name: `Лестница: ${item.name}` }, "ДОПОЛНИТЕЛЬНО", item.price));
+        if(selectedEmbed.length) selectedEmbed.forEach(item => addItem(item, "ДОПОЛНИТЕЛЬНО", item.price));
         
         if (shapeType === 'circle' && state.edge.has(edgeItem.id)) {
             const edgePrice = getOptionPrice(shapeType, 'edge_finish', state.diameter);
             if (edgePrice === 0 || (state.diameter >= 6 && state.diameter <= 8)) {
-                addItem({...edgeItem, priceText: "цену уточняйте"}, "ФИНИШНЫЙ БОРТ", 0);
+                addItem({...edgeItem, priceText: "цену уточняйте"}, "ДОПОЛНИТЕЛЬНО", 0);
             } else {
-                addItem(edgeItem, "ФИНИШНЫЙ БОРТ", edgePrice);
+                addItem(edgeItem, "ДОПОЛНИТЕЛЬНО", edgePrice);
             }
         }
         
         const mountRow = (id, cat) => { const item = selectedMount.find(i => i.id === id); if(item) addItem(item, cat, item.price); };
-        mountRow('mount3', "АРМИРОВАНИЕ");
-        mountRow('mount2', "УТЕПЛЕНИЕ");
-        selectedTech.forEach(item => addItem(item, "ТЕХ. ПОМЕЩЕНИЕ ДЛЯ ОБОРУДОВАНИЯ", item.price));
+        mountRow('mount3', "ДОПОЛНИТЕЛЬНО");
+        mountRow('mount2', "ДОПОЛНИТЕЛЬНО");
+        selectedTech.forEach(item => addItem(item, "ДОПОЛНИТЕЛЬНО", item.price));
         
         // ----- ОБОРУДОВАНИЕ: фильтрация, подогрев, подсветка, хлордозация -----
-        if(selectedEquip.length) selectedEquip.forEach(item => addLines(getFilterLines(shapeType, item.id), item.id === "pipes" ? "ТРУБЫ И ФИТИНГИ" : "ФИЛЬТРАЦИЯ"));
+        if(selectedEquip.length) selectedEquip.forEach(item => addLines(getFilterLines(shapeType, item.id), item.id === "pipes" ? "ТРУБЫ И ФИТИНГИ" : (item.id === "hose" ? "ФИЛЬТРАЦИЯ НА ШЛАНГАХ" : "ФИЛЬТРАЦИЯ")));
         if(selectedHeat.length) selectedHeat.forEach(item => addLines(item.lines, "ПОДОГРЕВ ВОДЫ"));
         if(lightCount > 0) addLines(getLightLines(shapeType), "ОСВЕЩЕНИЕ");
         if(selectedChlor.length) selectedChlor.forEach(item => addLines(getChlorLines(shapeType, item.id), "ХЛОРДОЗАЦИЯ"));
@@ -1484,7 +1496,7 @@
             return;
         }
         
-        const EQUIP_CATS = ["ФИЛЬТРАЦИЯ", "ТРУБЫ И ФИТИНГИ", "ПОДОГРЕВ ВОДЫ", "ОСВЕЩЕНИЕ", "ХЛОРДОЗАЦИЯ", "СБОРКА ОБОРУДОВАНИЯ"];
+        const EQUIP_CATS = ["ФИЛЬТРАЦИЯ", "ТРУБЫ И ФИТИНГИ", "ФИЛЬТРАЦИЯ НА ШЛАНГАХ", "ПОДОГРЕВ ВОДЫ", "ОСВЕЩЕНИЕ", "ХЛОРДОЗАЦИЯ", "СБОРКА ОБОРУДОВАНИЯ"];
         rows.forEach(r => { r.group = EQUIP_CATS.includes(r.category) ? "ОБОРУДОВАНИЕ" : "БАССЕЙН"; });
         const GROUP_ORDER = ["БАССЕЙН", "ОБОРУДОВАНИЕ"];
         const GROUP_TOTAL_LABEL = { "БАССЕЙН": "ИТОГО за бассейн:", "ОБОРУДОВАНИЕ": "ИТОГО за оборудование:" };
@@ -1624,7 +1636,7 @@
     }
     
     // Названия разделов для таблицы клиента
-    const CLIENT_NAMES = { "ЧАША БАССЕЙНА": "Чаша бассейна", "ДОПОЛНИТЕЛЬНО": "Радиусные углы" };
+    const CLIENT_NAMES = { "ЧАША БАССЕЙНА": "Чаша бассейна" };
     function clientSectionName(cat) {
         if (CLIENT_NAMES[cat]) return CLIENT_NAMES[cat];
         return cat.charAt(0) + cat.slice(1).toLowerCase();
@@ -1774,14 +1786,14 @@
                             cell.border = border;
                             cell.alignment = { vertical: 'middle', wrapText: c === 2, horizontal: c === 2 ? 'left' : (c === 1 || c === 4 || c === 6) ? 'center' : 'right' };
                         }
-                        row.getCell(3).numberFormat = '#,##0';
-                        row.getCell(5).numberFormat = '#,##0';
+                        row.getCell(3).numFmt = '#,##0';
+                        row.getCell(5).numFmt = '#,##0';
                         rowNum++;
                     });
                     const last = rowNum - 1;
                     const secCell = ws.getCell(`G${secRow}`);
                     secCell.value = { formula: `SUM(E${first}:E${last})`, result: secSum };
-                    secCell.numberFormat = '#,##0 "₽"';
+                    secCell.numFmt = '#,##0 "₽"';
                     secCell.font = { name: FONT, size: 11, bold: true };
                     secCell.alignment = { horizontal: 'right', vertical: 'middle' };
                     b.sum += secSum;
@@ -1801,7 +1813,7 @@
                     sv.font = { name: FONT, size: 10, bold: true, color: { argb: 'FFE65100' } };
                 } else {
                     sv.value = { formula: b.secRows.map(r => `G${r}`).join('+'), result: b.sum };
-                    sv.numberFormat = '#,##0 "₽"';
+                    sv.numFmt = '#,##0 "₽"';
                     sv.font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
                 }
                 sv.alignment = { horizontal: 'right', vertical: 'middle' };
@@ -1820,7 +1832,7 @@
                 tl.value = 'ИТОГО (бассейн + оборудование)';
                 tl.font = { name: FONT, size: 12, bold: true };
                 tv.value = { formula: blocks.map(b => `G${b.subRow}`).join('+'), result: spec.totalSum };
-                tv.numberFormat = '#,##0 "₽"';
+                tv.numFmt = '#,##0 "₽"';
                 tv.font = { name: FONT, size: 12, bold: true, color: { argb: 'FF0A4C73' } };
             }
             tl.alignment = { horizontal: 'right', vertical: 'middle' };
@@ -1866,7 +1878,7 @@
                         wc.getCell(`B${cr}`).font = { name: FONT, size: 10, color: { argb: 'FFE65100' } };
                     } else {
                         wc.getCell(`B${cr}`).value = { formula: `'Коммерческое предложение'!G${sec.row}`, result: secSum };
-                        wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
+                        wc.getCell(`B${cr}`).numFmt = '#,##0 "₽"';
                         wc.getCell(`B${cr}`).font = { name: FONT, size: 10 };
                     }
                     wc.getCell(`A${cr}`).border = border; wc.getCell(`B${cr}`).border = border;
@@ -1881,7 +1893,7 @@
                     wc.getCell(`B${cr}`).font = { name: FONT, size: 10, bold: true, color: { argb: 'FFE65100' } };
                 } else {
                     wc.getCell(`B${cr}`).value = { formula: `SUM(B${first}:B${cr - 1})`, result: b.sum };
-                    wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
+                    wc.getCell(`B${cr}`).numFmt = '#,##0 "₽"';
                     wc.getCell(`B${cr}`).font = { name: FONT, size: 11, bold: true, color: { argb: 'FF0A4C73' } };
                 }
                 wc.getCell(`B${cr}`).alignment = { horizontal: 'right' };
@@ -1898,7 +1910,7 @@
                 wc.getCell(`A${cr}`).value = 'ИТОГО (бассейн + оборудование)';
                 wc.getCell(`A${cr}`).font = { name: FONT, size: 12, bold: true };
                 wc.getCell(`B${cr}`).value = { formula: blocks.map(b => `B${b.clientSubRow}`).join('+'), result: spec.totalSum };
-                wc.getCell(`B${cr}`).numberFormat = '#,##0 "₽"';
+                wc.getCell(`B${cr}`).numFmt = '#,##0 "₽"';
                 wc.getCell(`B${cr}`).font = { name: FONT, size: 12, bold: true, color: { argb: 'FF0A4C73' } };
                 wc.getCell(`B${cr}`).alignment = { horizontal: 'right' };
             }
@@ -2230,7 +2242,7 @@
         const c = document.getElementById(`${shapeType}EquipGroup`);
         if(!c) return;
         c.innerHTML = '';
-        filterItems.forEach(opt => {
+        filterItems.filter(i => i.id !== 'hose' || shapeType === 'circle').forEach(opt => {
             const btn = document.createElement('div');
             btn.className = 'price-btn';
             if(selectedState[shapeType].equip.has(opt.id)) btn.classList.add('selected');
